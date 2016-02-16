@@ -43,8 +43,7 @@ namespace video
 
 	class COGLES2Driver : public CNullDriver, public IMaterialRendererServices, public COGLES2ExtensionHandler
 	{
-		friend COGLES2CacheHandler;
-		friend COGLES2Texture;
+		friend class COpenGLCoreTexture<COGLES2Driver>;
 
 	public:
 		//! constructor
@@ -302,9 +301,6 @@ namespace video
 
 		void removeTexture(ITexture* texture) _IRR_OVERRIDE_;
 
-		// returns the current size of the screen or rendertarget
-		virtual const core::dimension2d<u32>& getCurrentRenderTargetSize() const _IRR_OVERRIDE_;
-
 		//! Convert E_BLEND_FACTOR to OpenGL equivalent
 		GLenum getGLBlend(E_BLEND_FACTOR factor) const;
 
@@ -372,8 +368,6 @@ namespace video
 		};
 
 		core::array<SUserClipPlane> UserClipPlane;
-
-		core::dimension2d<u32> CurrentRendertargetSize;
 
 		core::stringc VendorName;
 
