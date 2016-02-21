@@ -818,7 +818,7 @@ bool CD3D9Driver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor
 
 		// Set other settings.
 
-		CurrentRendertargetSize = renderTarget->getSize();
+		CurrentRenderTargetSize = renderTarget->getSize();
 		Transformation3DChanged = true;
 	}
 	else if (CurrentRenderTarget != target)
@@ -861,7 +861,7 @@ bool CD3D9Driver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SColor
 
 		// Set other settings.
 
-		CurrentRendertargetSize = core::dimension2d<u32>(0, 0);
+		CurrentRenderTargetSize = core::dimension2d<u32>(0, 0);
 		Transformation3DChanged = true;
 	}
 
@@ -1404,7 +1404,7 @@ void CD3D9Driver::draw2D3DVertexPrimitiveList(const void* vertices,
 				pID3DDevice->DrawIndexedPrimitiveUP(D3DPT_LINESTRIP, 0, vertexCount,
 				primitiveCount - 1, indexList, indexType, vertices, stride);
 
-				u16 tmpIndices[] = {primitiveCount - 1, 0};
+				u16 tmpIndices[] = {static_cast<u16>(primitiveCount - 1), 0};
 
 				pID3DDevice->DrawIndexedPrimitiveUP(D3DPT_LINELIST, 0, vertexCount,
 					1, tmpIndices, indexType, vertices, stride);
@@ -3332,16 +3332,6 @@ D3DFORMAT CD3D9Driver::getD3DColorFormat() const
 }
 
 
-// returns the current size of the screen or rendertarget
-const core::dimension2d<u32>& CD3D9Driver::getCurrentRenderTargetSize() const
-{
-	if ( CurrentRendertargetSize.Width == 0 )
-		return ScreenSize;
-	else
-		return CurrentRendertargetSize;
-}
-
-
 // Set/unset a clipping plane.
 bool CD3D9Driver::setClipPlane(u32 index, const core::plane3df& plane, bool enable)
 {
@@ -3385,6 +3375,16 @@ D3DFORMAT CD3D9Driver::getD3DFormatFromColorFormat(ECOLOR_FORMAT format) const
 			return D3DFMT_R8G8B8;
 		case ECF_A8R8G8B8:
 			return D3DFMT_A8R8G8B8;
+		case ECF_DXT1:
+			return D3DFMT_DXT1;
+		case ECF_DXT2:
+			return D3DFMT_DXT2;
+		case ECF_DXT3:
+			return D3DFMT_DXT3;
+		case ECF_DXT4:
+			return D3DFMT_DXT4;
+		case ECF_DXT5:
+			return D3DFMT_DXT5;
 		case ECF_R16F:
 			return D3DFMT_R16F;
 		case ECF_G16R16F:
