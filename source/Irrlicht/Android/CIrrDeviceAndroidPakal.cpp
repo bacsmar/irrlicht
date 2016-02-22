@@ -194,7 +194,7 @@ namespace irr
 		case video::EDT_SOFTWARE:
 		case video::EDT_BURNINGSVIDEO:
 		case video::EDT_OPENGL:
-		case video::EDT_DIRECT3D8:
+		//case video::EDT_DIRECT3D8:
 		case video::EDT_DIRECT3D9:
 			os::Printer::log("This driver is not available in Android. Try OpenGL ES 2.0.", ELL_ERROR);
 			break;
