@@ -344,11 +344,9 @@ namespace video
 		//! Returns if a texture creation flag is enabled or disabled.
 		virtual bool getTextureCreationFlag(E_TEXTURE_CREATION_FLAG flag) const _IRR_OVERRIDE_;
 
-		//! Creates a software image from a file.
-		virtual IImage* createImageFromFile(const io::path& filename) _IRR_OVERRIDE_;
+		virtual core::array<IImage*> createImagesFromFile(const io::path& filename, E_TEXTURE_TYPE* type = 0) _IRR_OVERRIDE_;
 
-		//! Creates a software image from a file.
-		virtual IImage* createImageFromFile(io::IReadFile* file) _IRR_OVERRIDE_;
+		virtual core::array<IImage*> createImagesFromFile(io::IReadFile* file, E_TEXTURE_TYPE* type = 0) _IRR_OVERRIDE_;
 
 		//! Creates a software image from a byte array.
 		/** \param useForeignMemory: If true, the image will use the data pointer
@@ -360,7 +358,6 @@ namespace video
 
 		//! Creates an empty software image.
 		virtual IImage* createImage(ECOLOR_FORMAT format, const core::dimension2d<u32>& size) _IRR_OVERRIDE_;
-
 
 		//! Creates a software image from another image.
 		virtual IImage* createImage(ECOLOR_FORMAT format, IImage *imageToCopy) _IRR_OVERRIDE_;
@@ -774,7 +771,7 @@ namespace video
 		{
 			SDummyTexture(const io::path& name, E_TEXTURE_TYPE type) : ITexture(name, type) {};
 
-			virtual void* lock(E_TEXTURE_LOCK_MODE mode=ETLM_READ_WRITE, u32 mipmapLevel=0) _IRR_OVERRIDE_ { return 0; }
+			virtual void* lock(E_TEXTURE_LOCK_MODE mode = ETLM_READ_WRITE, u32 layer = 0) _IRR_OVERRIDE_ { return 0; }
 			virtual void unlock()_IRR_OVERRIDE_ {}
 			virtual void regenerateMipMapLevels(void* data = 0, u32 layer = 0) _IRR_OVERRIDE_ {}
 		};
