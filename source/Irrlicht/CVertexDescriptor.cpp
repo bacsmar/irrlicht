@@ -35,7 +35,17 @@ namespace video
 	IVertexAttribute* CVertexDescriptor::addAttribute(const core::stringc& name, u32 elementCount, E_VERTEX_ATTRIBUTE_SEMANTIC semantic, E_VERTEX_ATTRIBUTE_TYPE type, u32 bufferID)
 	{
 		if (bufferID == -1)
-			return nullptr;
+		{
+			CVertexAttribute attribute(name, elementCount, semantic, type, 0, bufferID);
+			Attribute.push_back(attribute);
+			AttributeSemanticIndex[(u32)attribute.getSemantic()] = Attribute.size() - 1;
+			// Assign data to the pointers.
+			AttributePointer.push_back(0);
+			for (u32 i = 0; i < AttributePointer.size(); ++i)
+				AttributePointer[i] = &Attribute[i];
+
+			return AttributePointer.getLast();
+		}			
 		for (u32 i = 0; i < Attribute.size(); ++i)
 			if (name == Attribute[i].getName() || (semantic != EVAS_CUSTOM && semantic == Attribute[i].getSemantic()))
 				return false;
