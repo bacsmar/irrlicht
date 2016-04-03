@@ -301,7 +301,7 @@ IImageWriter* CNullDriver::getImageWriter(u32 n)
 		return descriptor;
 	}
 
-	IVertexDescriptor* CNullDriver::getVertexDescriptor(E_MATERIAL_TYPE materialType)
+	IVertexDescriptor* CNullDriver::getVertexDescriptor(E_MATERIAL_TYPE materialType, E_VERTEX_TYPE vertexType) const
 	{
 		auto descriptor = VertexDescriptor.find(materialType);
 		return descriptor ? descriptor->getValue() : nullptr;
