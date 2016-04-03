@@ -5,6 +5,8 @@
 #include "COpenGLDriver.h"
 #include "CNullDriver.h"
 #include "IContextManager.h"
+#include <EVertexAttributes.h>
+#include <IVertexDescriptor.h>
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 
@@ -876,6 +878,14 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 		}
 	}
 
+	
+		this->extGlEnableVertexAttribArray(EVA_POSITION);
+		this->extGlEnableVertexAttribArray(EVA_COLOR);
+		this->extGlEnableVertexAttribArray(EVA_NORMAL);
+		this->extGlEnableVertexAttribArray(EVA_TCOORD0);
+
+		// get the vertex descriptor, for the material type..!!, and then set
+
 	switch (vType)
 	{
 		case EVT_STANDARD:
@@ -884,6 +894,26 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 				glNormalPointer(GL_FLOAT, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Normal);
 				glTexCoordPointer(2, GL_FLOAT, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
 				glVertexPointer(3, GL_FLOAT, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
+				/*
+				extGlVertexAttribPointer(EVA_POSITION, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
+				extGlVertexAttribPointer(EVA_NORMAL, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Normal);
+				extGlVertexAttribPointer(EVA_COLOR, 4, GL_UNSIGNED_BYTE, true, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Color);
+				extGlVertexAttribPointer(EVA_TCOORD0, 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
+				*/
+				//extGlVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
+				//extGlVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
+				
+				auto descriptor = this->getVertexDescriptor(this->getCurrentMaterial().MaterialType);
+				if(descriptor)
+				{
+					auto attribute = descriptor->getAttributeBySemantic(EVAS_POSITION);
+					extGlVertexAttribPointer(attribute->getBufferID(), 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
+					attribute = descriptor->getAttributeBySemantic(EVAS_TEXCOORD0);
+					extGlVertexAttribPointer(attribute->getBufferID(), 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
+				}				
+
+				// 
+				// extGlVertexAttribPointer(desc.index, desc., GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords); 
 			}
 			else
 			{
@@ -964,6 +994,11 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 	}
 
 	renderArray(indexList, primitiveCount, pType, iType);
+
+	extGlDisableVertexAttribArray(EVA_POSITION);
+	extGlDisableVertexAttribArray(EVA_COLOR);
+	this->extGlDisableVertexAttribArray(EVA_NORMAL);
+	this->extGlDisableVertexAttribArray(EVA_TCOORD0);
 
 	if (Feature.TextureUnit > 0)
 	{
@@ -4338,9 +4373,7 @@ const SMaterial& COpenGLDriver::getCurrentMaterial() const
 COpenGLCacheHandler* COpenGLDriver::getCacheHandler() const
 {
 	return CacheHandler;
-}
-
-
+}	
 } // end namespace
 } // end namespace
 

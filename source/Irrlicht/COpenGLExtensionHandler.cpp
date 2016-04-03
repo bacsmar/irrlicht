@@ -43,6 +43,9 @@ COpenGLExtensionHandler::COpenGLExtensionHandler() :
 	pGlUniform1ivARB(0), pGlUniform2ivARB(0), pGlUniform3ivARB(0), pGlUniform4ivARB(0),
 	pGlUniformMatrix2fvARB(0), pGlUniformMatrix3fvARB(0), pGlUniformMatrix4fvARB(0),
 	pGlGetActiveUniformARB(0), pGlGetActiveUniform(0),
+	pGlDisableVertexAttribArray(0), pGlEnableVertexAttribArray(0),
+	pGlGetAttribLocation(0), pGlVertexAttribPointer(0),pGlBindAttribLocation(0),pGlGetActiveAttrib(0),
+
 	pGlPointParameterfARB(0), pGlPointParameterfvARB(0),
 	pGlStencilFuncSeparate(0), pGlStencilOpSeparate(0),
 	pGlStencilFuncSeparateATI(0), pGlStencilOpSeparateATI(0),
@@ -459,6 +462,12 @@ void COpenGLExtensionHandler::initExtensions(bool stencilBuffer)
 	pGlUniformMatrix4fvARB = (PFNGLUNIFORMMATRIX4FVARBPROC) IRR_OGL_LOAD_EXTENSION("glUniformMatrix4fvARB");
 	pGlGetActiveUniformARB = (PFNGLGETACTIVEUNIFORMARBPROC) IRR_OGL_LOAD_EXTENSION("glGetActiveUniformARB");
 	pGlGetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC) IRR_OGL_LOAD_EXTENSION("glGetActiveUniform");
+	pGlDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC) IRR_OGL_LOAD_EXTENSION("glDisableVertexAttribArray");
+	pGlEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) IRR_OGL_LOAD_EXTENSION("glEnableVertexAttribArray");
+	pGlGetAttribLocation = (PFNGLGETATTRIBLOCATIONARBPROC) IRR_OGL_LOAD_EXTENSION("glGetAttribLocation");
+	pGlVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) IRR_OGL_LOAD_EXTENSION("glVertexAttribPointer");
+	pGlBindAttribLocation = (PFNGLBINDATTRIBLOCATIONARBPROC)IRR_OGL_LOAD_EXTENSION("glBindAttribLocation");
+	pGlGetActiveAttrib = (PFNGLGETACTIVEATTRIBPROC)IRR_OGL_LOAD_EXTENSION("glGetActiveAttrib");
 
 	// get point parameter extension
 	pGlPointParameterfARB = (PFNGLPOINTPARAMETERFARBPROC) IRR_OGL_LOAD_EXTENSION("glPointParameterfARB");

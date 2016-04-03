@@ -39,6 +39,7 @@ namespace scene
 
 namespace video
 {
+	class IVertexDescriptor;
 	struct S3DVertex;
 	struct S3DVertex2TCoords;
 	struct S3DVertexTangents;
@@ -1553,6 +1554,8 @@ namespace video
 		*/
 		virtual void convertColor(const void* sP, ECOLOR_FORMAT sF, s32 sN,
 				void* dP, ECOLOR_FORMAT dF) const =0;
+
+		virtual IVertexDescriptor* addVertexDescriptor(E_MATERIAL_TYPE materialType, E_VERTEX_TYPE vertexType) = 0;
 	};
 
 } // end namespace video

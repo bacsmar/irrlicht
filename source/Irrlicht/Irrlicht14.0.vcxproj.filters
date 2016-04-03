@@ -1300,9 +1300,6 @@
     <ClInclude Include="SB3DStructs.h">
       <Filter>Irrlicht\scene</Filter>
     </ClInclude>
-    <ClInclude Include="COpenGLCacheHandler.h">
-      <Filter>Irrlicht\video\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="COpenGLCommon.h">
       <Filter>Irrlicht\video\OpenGL</Filter>
     </ClInclude>
@@ -1383,6 +1380,12 @@
     </ClInclude>
     <ClInclude Include="CWGLManager.h">
       <Filter>Irrlicht\video\OpenGL Context</Filter>
+    </ClInclude>
+    <ClInclude Include="COpenGLCacheHandler.h">
+      <Filter>Irrlicht\video\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="CVertexDescriptor.h">
+      <Filter>Irrlicht\video\Null</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2294,9 +2297,6 @@
     <ClCompile Include="CB3DMeshWriter.cpp">
       <Filter>Irrlicht\scene\writers</Filter>
     </ClCompile>
-    <ClCompile Include="COpenGLCacheHandler.cpp">
-      <Filter>Irrlicht\video\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="COpenGLDriver.cpp">
       <Filter>Irrlicht\video\OpenGL</Filter>
     </ClCompile>
@@ -2350,6 +2350,12 @@
     </ClCompile>
     <ClCompile Include="CWGLManager.cpp">
       <Filter>Irrlicht\video\OpenGL Context</Filter>
+    </ClCompile>
+    <ClCompile Include="COpenGLCacheHandler.cpp">
+      <Filter>Irrlicht\video\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="CVertexDescriptor.cpp">
+      <Filter>Irrlicht\video\Null</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
