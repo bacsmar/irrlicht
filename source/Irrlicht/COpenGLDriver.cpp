@@ -878,11 +878,10 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 		}
 	}
 
-	
-		this->extGlEnableVertexAttribArray(EVA_POSITION);
-		this->extGlEnableVertexAttribArray(EVA_COLOR);
-		this->extGlEnableVertexAttribArray(EVA_NORMAL);
-		this->extGlEnableVertexAttribArray(EVA_TCOORD0);
+	irr::u32 posId = -1;
+	irr::u32 textCoordId = -1;
+	irr::u32 normalId = -1;
+	irr::u32 colorId = -1;
 
 		// get the vertex descriptor, for the material type..!!, and then set
 
@@ -900,20 +899,24 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 				extGlVertexAttribPointer(EVA_COLOR, 4, GL_UNSIGNED_BYTE, true, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Color);
 				extGlVertexAttribPointer(EVA_TCOORD0, 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
 				*/
-				//extGlVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
-				//extGlVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
 				
-				auto descriptor = this->getVertexDescriptor(this->getCurrentMaterial().MaterialType);
+				auto descriptor = this->getVertexDescriptor(this->getCurrentMaterial().MaterialType, EVT_STANDARD);
 				if(descriptor)
 				{
 					auto attribute = descriptor->getAttributeBySemantic(EVAS_POSITION);
-					extGlVertexAttribPointer(attribute->getBufferID(), 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
+					posId = attribute->getBufferID();
 					attribute = descriptor->getAttributeBySemantic(EVAS_TEXCOORD0);
-					extGlVertexAttribPointer(attribute->getBufferID(), 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
-				}				
+					textCoordId = attribute->getBufferID();
+					//attribute = descriptor->getAttributeBySemantic(EVAS_COLOR);
+					//colorId = attribute->getBufferID();
+					//attribute = descriptor->getAttributeBySemantic(EVAS_NORMAL);
+					//normalId = attribute->getBufferID();
 
-				// 
-				// extGlVertexAttribPointer(desc.index, desc., GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords); 
+					extGlVertexAttribPointer(posId, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
+					extGlVertexAttribPointer(normalId, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Normal);
+					extGlVertexAttribPointer(colorId, 4, GL_UNSIGNED_BYTE, true, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Color);
+					extGlVertexAttribPointer(textCoordId, 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);					
+				}
 			}
 			else
 			{
@@ -993,12 +996,21 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 			break;
 	}
 
+	//if (posId != -1)
+		this->extGlEnableVertexAttribArray(posId);
+	//if (colorId != -1)
+		this->extGlEnableVertexAttribArray(colorId);
+	//if (normalId != -1)
+		this->extGlEnableVertexAttribArray(normalId);
+	//if (textCoordId != -1)
+		this->extGlEnableVertexAttribArray(textCoordId);
+
 	renderArray(indexList, primitiveCount, pType, iType);
 
-	extGlDisableVertexAttribArray(EVA_POSITION);
-	extGlDisableVertexAttribArray(EVA_COLOR);
-	this->extGlDisableVertexAttribArray(EVA_NORMAL);
-	this->extGlDisableVertexAttribArray(EVA_TCOORD0);
+	extGlDisableVertexAttribArray(posId);
+	extGlDisableVertexAttribArray(colorId);
+	this->extGlDisableVertexAttribArray(normalId);
+	this->extGlDisableVertexAttribArray(textCoordId);
 
 	if (Feature.TextureUnit > 0)
 	{
