@@ -990,13 +990,13 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 			break;
 	}
 	//enable vertex attrib descriptor
-	for (auto id = 0; id < descriptorArray.size(); ++id)
+	for (u32 id = 0; id < descriptorArray.size(); ++id)
 		this->extGlEnableVertexAttribArray(id);
 
 	renderArray(indexList, primitiveCount, pType, iType);
 
 	//disable vertex attrib descriptor
-	for (auto id = 0; id <descriptorArray.size(); ++id)
+	for (u32 id = 0; id <descriptorArray.size(); ++id)
 		this->extGlDisableVertexAttribArray(id);
 
 	if (Feature.TextureUnit > 0)
