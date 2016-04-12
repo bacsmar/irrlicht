@@ -364,7 +364,7 @@ namespace irr
 						core::stringc name = "";
 
 						// array support, workaround for some bugged drivers.
-						for (s32 i = 0; i < maxlen; ++i)
+						for (s32 i = 0; i < attribMaxlen; ++i)
 						{
 							if (buf[i] == '[' || buf[i] == '\0')
 								break;
