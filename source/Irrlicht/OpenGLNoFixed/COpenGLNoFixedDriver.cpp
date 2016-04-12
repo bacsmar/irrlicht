@@ -2243,7 +2243,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 	//! Returns type of video driver
 	E_DRIVER_TYPE COpenGLNoFixedDriver::getDriverType() const
 	{
-		return EDT_OGLES2;
+		return EDT_OPENGL_NO_FIXED;
 	}
 
 
