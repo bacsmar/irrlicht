@@ -46,7 +46,6 @@
     <ProjectName>Irrlicht</ProjectName>
     <ProjectGuid>{E08E042A-6C45-411B-92BE-3CC31331019F}</ProjectGuid>
     <RootNamespace>Irrlicht</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release_static|Win32'" Label="Configuration">
@@ -505,7 +504,9 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>
+      </MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -572,9 +573,10 @@ xcopy /y /d  "$(SolutionDir)libs\GLES_SDK_v31\x86\*.lib" "$(OutDir)"</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -797,7 +799,6 @@ xcopy /y /d  "$(SolutionDir)libs\GLES_SDK_v31\x86\*.lib" "$(OutDir)"</Command>
     <ClInclude Include="CGLXManager.h" />
     <ClInclude Include="CMeshCache.h" />
     <ClInclude Include="CMeshManipulator.h" />
-    <ClInclude Include="COpenGLCacheHandler.h" />
     <ClInclude Include="COpenGLCoreCacheHandler.h" />
     <ClInclude Include="COpenGLCoreFeature.h" />
     <ClInclude Include="COpenGLCoreRenderTarget.h" />
@@ -814,6 +815,7 @@ xcopy /y /d  "$(SolutionDir)libs\GLES_SDK_v31\x86\*.lib" "$(OutDir)"</Command>
     <ClInclude Include="COGLESDriver.h" />
     <ClInclude Include="COGLESExtensionHandler.h" />
     <ClInclude Include="COGLESMaterialRenderer.h" />
+    <ClInclude Include="COpenGLCacheHandler.h" />
     <ClInclude Include="COpenGLCommon.h" />
     <ClInclude Include="COpenGLDriver.h" />
     <ClInclude Include="COpenGLExtensionHandler.h" />
@@ -823,7 +825,6 @@ xcopy /y /d  "$(SolutionDir)libs\GLES_SDK_v31\x86\*.lib" "$(OutDir)"</Command>
     <ClInclude Include="COpenGLShaderMaterialRenderer.h" />
     <ClInclude Include="COpenGLSLMaterialRenderer.h" />
     <ClInclude Include="CSceneManager.h" />
-    <ClInclude Include="CVertexDescriptor.h" />
     <ClInclude Include="CWGLManager.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="CSMFMeshFileLoader.h" />
@@ -1113,7 +1114,6 @@ xcopy /y /d  "$(SolutionDir)libs\GLES_SDK_v31\x86\*.lib" "$(OutDir)"</Command>
     <ClCompile Include="CQ3LevelMesh.cpp" />
     <ClCompile Include="CSkinnedMesh.cpp" />
     <ClCompile Include="CSTLMeshFileLoader.cpp" />
-    <ClCompile Include="CVertexDescriptor.cpp" />
     <ClCompile Include="CWGLManager.cpp" />
     <ClCompile Include="CXMeshFileLoader.cpp" />
     <ClCompile Include="CAnimatedMeshSceneNode.cpp" />

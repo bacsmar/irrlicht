@@ -77,8 +77,6 @@ public:
 	virtual bool setPixelShaderConstant(s32 index, const s32* ints, int count) _IRR_OVERRIDE_;
 	virtual IVideoDriver* getVideoDriver() _IRR_OVERRIDE_;
 
-	virtual s32 getVertexShaderAttribID(const c8* name);	
-
 protected:
 
 	//! constructor only for use by derived classes who want to
@@ -115,17 +113,9 @@ protected:
 		GLint location;
 	};
 
-	struct SAtrribInfo
-	{
-		core::stringc name;
-		GLenum type;
-		GLint location;
-	};
-
 	GLhandleARB Program;
 	GLuint Program2;
 	core::array<SUniformInfo> UniformInfo;
-	core::array<SAtrribInfo> AttribInfo;
 	s32 UserData;
 };
 

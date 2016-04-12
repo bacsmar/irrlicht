@@ -673,9 +673,6 @@ namespace video
 				const c8* name=0);
 
 		virtual bool checkDriverReset() _IRR_OVERRIDE_ {return false;}
-
-		IVertexDescriptor* addVertexDescriptor(E_MATERIAL_TYPE materialType, E_VERTEX_TYPE vertexType) _IRR_OVERRIDE_;
-		IVertexDescriptor* getVertexDescriptor(E_MATERIAL_TYPE materialType, E_VERTEX_TYPE vertexType) const;
 	protected:
 
 		//! deletes all textures
@@ -889,8 +886,6 @@ namespace video
 		bool AllowZWriteOnTransparent;
 
 		bool FeatureEnabled[video::EVDF_COUNT];
-
-		irr::core::map<E_MATERIAL_TYPE, IVertexDescriptor*> VertexDescriptor;
 
 		SColorf AmbientLight;
 	};

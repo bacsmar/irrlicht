@@ -5,8 +5,6 @@
 #include "COpenGLDriver.h"
 #include "CNullDriver.h"
 #include "IContextManager.h"
-#include <EVertexAttributes.h>
-#include <IVertexDescriptor.h>
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 
@@ -878,9 +876,6 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 		}
 	}
 
-	// get the vertex descriptor, for the material type..!!, and then set their vertex descriptors
-	irr::core::array<irr::u32> descriptorArray(4);
-
 	switch (vType)
 	{
 		case EVT_STANDARD:
@@ -888,40 +883,7 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 			{
 				glNormalPointer(GL_FLOAT, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Normal);
 				glTexCoordPointer(2, GL_FLOAT, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
-				glVertexPointer(3, GL_FLOAT, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);				
-				
-				// set vertex descriptors
-				auto descriptor = this->getVertexDescriptor(this->getCurrentMaterial().MaterialType, EVT_STANDARD);
-				if (descriptor)
-				{
-					u32 id = -1;
-					irr::video::IVertexAttribute* attribute = nullptr;
-
-					attribute = descriptor->getAttributeBySemantic(EVAS_TEXCOORD0);
-					if (attribute) {
-						descriptorArray.push_back(id = attribute->getBufferID());
-						extGlVertexAttribPointer(id, 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
-					}
-
-					attribute = descriptor->getAttributeBySemantic(EVAS_POSITION);
-					if (attribute) {
-						descriptorArray.push_back(id = attribute->getBufferID());
-						extGlVertexAttribPointer(id, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
-					}
-
-					attribute = descriptor->getAttributeBySemantic(EVAS_COLOR);
-					if (attribute)
-					{
-						descriptorArray.push_back(id = attribute->getBufferID());
-						extGlVertexAttribPointer(id, 4, GL_UNSIGNED_BYTE, true, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Color);
-					}
-
-					attribute = descriptor->getAttributeBySemantic(EVAS_NORMAL);
-					if (attribute) {
-						descriptorArray.push_back(id = attribute->getBufferID());
-						extGlVertexAttribPointer(id, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Normal);
-					}
-				}
+				glVertexPointer(3, GL_FLOAT, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
 			}
 			else
 			{
@@ -1000,15 +962,8 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 			}
 			break;
 	}
-	//enable vertex attrib descriptor
-	for (u32 id = 0; id < descriptorArray.size(); ++id)
-		this->extGlEnableVertexAttribArray(id);
 
 	renderArray(indexList, primitiveCount, pType, iType);
-
-	//disable vertex attrib descriptor
-	for (u32 id = 0; id <descriptorArray.size(); ++id)
-		this->extGlDisableVertexAttribArray(id);
 
 	if (Feature.TextureUnit > 0)
 	{
@@ -4383,7 +4338,9 @@ const SMaterial& COpenGLDriver::getCurrentMaterial() const
 COpenGLCacheHandler* COpenGLDriver::getCacheHandler() const
 {
 	return CacheHandler;
-}	
+}
+
+
 } // end namespace
 } // end namespace
 

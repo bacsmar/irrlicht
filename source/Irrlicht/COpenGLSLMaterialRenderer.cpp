@@ -406,7 +406,7 @@ bool COpenGLSLMaterialRenderer::linkProgram()
 		{
 			os::Printer::log("GLSL shader program failed to link", ELL_ERROR);
 			// check error message and log it
-			GLint maxLength = 0;
+			GLint maxLength=0;
 			GLsizei length;
 #ifdef GL_VERSION_2_0
 			Driver->extGlGetProgramiv(Program2, GL_INFO_LOG_LENGTH, &maxLength);
@@ -416,7 +416,7 @@ bool COpenGLSLMaterialRenderer::linkProgram()
 				GLchar *infoLog = new GLchar[maxLength];
 				Driver->extGlGetProgramInfoLog(Program2, maxLength, &length, infoLog);
 				os::Printer::log(reinterpret_cast<const c8*>(infoLog), ELL_ERROR);
-				delete[] infoLog;
+				delete [] infoLog;
 			}
 
 			return false;
@@ -446,70 +446,27 @@ bool COpenGLSLMaterialRenderer::linkProgram()
 			return false;
 		}
 
-		{
-			// seems that some implementations use an extra null terminator
-			++maxlen;
-			c8 *buf = new c8[maxlen];
-
-			UniformInfo.clear();
-			UniformInfo.reallocate(num);
-
-			for (GLint i = 0; i < num; ++i)
-			{
-				SUniformInfo ui;
-				memset(buf, 0, maxlen);
-
-				GLint size;
-				Driver->extGlGetActiveUniform(Program2, i, maxlen, 0, &size, &ui.type, reinterpret_cast<GLchar*>(buf));
-				ui.name = buf;
-				ui.location = Driver->extGlGetUniformLocation(Program2, buf);
-
-				UniformInfo.push_back(ui);
-			}
-
-			delete[] buf;
-		}
-
-		// get vertex attrib info
-		// http://stackoverflow.com/questions/440144/in-opengl-is-there-a-way-to-get-a-list-of-all-uniforms-attribs-used-by-a-shade
-		GLint numAttrib = 0;
-#ifdef GL_VERSION_2_0
-		Driver->extGlGetProgramiv(Program2, GL_ACTIVE_ATTRIBUTES, &numAttrib);
-#endif
-		GLint attribMaxlen = 0;
-#ifdef GL_VERSION_2_0
-		Driver->extGlGetProgramiv(Program2, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &attribMaxlen);
-#endif
-
-		if (attribMaxlen == 0)
-		{
-			os::Printer::log("GLSL: failed to retrieve vertex attrib information", ELL_ERROR);
-			return false;
-		}
-
 		// seems that some implementations use an extra null terminator
-		{			
-			++attribMaxlen;
-			c8 *buf = new c8[attribMaxlen];
+		++maxlen;
+		c8 *buf = new c8[maxlen];
 
-			AttribInfo.clear();
-			AttribInfo.reallocate(numAttrib);
+		UniformInfo.clear();
+		UniformInfo.reallocate(num);
 
-			for (GLint i = 0; i < numAttrib; ++i)
-			{
-				SAtrribInfo info;
-				memset(buf, 0, attribMaxlen);
+		for (GLint i=0; i < num; ++i)
+		{
+			SUniformInfo ui;
+			memset(buf, 0, maxlen);
 
-				GLint size;
-				Driver->extGlGetActiveAttrib(Program2, i, attribMaxlen, 0, &size, &info.type, reinterpret_cast<GLchar*>(buf));
-				info.name = buf;
-				info.location = Driver->extGlGetAttribLocation(Program2, buf);
+			GLint size;
+			Driver->extGlGetActiveUniform(Program2, i, maxlen, 0, &size, &ui.type, reinterpret_cast<GLchar*>(buf));
+			ui.name = buf;
+			ui.location = Driver->extGlGetUniformLocation(Program2, buf);
 
-				AttribInfo.push_back(info);
-			}
+			UniformInfo.push_back(ui);
+		}
 
-			delete[] buf;
-		}		
+		delete [] buf;
 	}
 	else
 	{
@@ -743,16 +700,6 @@ IVideoDriver* COpenGLSLMaterialRenderer::getVideoDriver()
 	return Driver;
 }
 
-	s32 COpenGLSLMaterialRenderer::getVertexShaderAttribID(const c8* name)
-	{
-		for (u32 i = 0; i < AttribInfo.size(); ++i)
-		{
-			if (AttribInfo[i].name == name)
-				return i;
-		}
-
-		return -1;
-	}
 } // end namespace video
 } // end namespace irr
 

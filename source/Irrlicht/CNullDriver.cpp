@@ -16,7 +16,6 @@
 #include "CColorConverter.h"
 #include "IAttributeExchangingObject.h"
 #include "IRenderTarget.h"
-#include "CVertexDescriptor.h"
 
 
 namespace irr
@@ -294,20 +293,7 @@ IImageWriter* CNullDriver::getImageWriter(u32 n)
 }
 
 
-	IVertexDescriptor* CNullDriver::addVertexDescriptor(E_MATERIAL_TYPE materialType, E_VERTEX_TYPE vertexType)
-	{
-		auto descriptor = new CVertexDescriptor("", VertexDescriptor.size());
-		VertexDescriptor[materialType] = descriptor;
-		return descriptor;
-	}
-
-	IVertexDescriptor* CNullDriver::getVertexDescriptor(E_MATERIAL_TYPE materialType, E_VERTEX_TYPE vertexType) const
-	{
-		auto descriptor = VertexDescriptor.find(materialType);
-		return descriptor ? descriptor->getValue() : nullptr;
-	}
-
-	//! deletes all textures
+//! deletes all textures
 void CNullDriver::deleteAllTextures()
 {
 	// we need to remove previously set textures which might otherwise be kept in the
