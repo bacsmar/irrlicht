@@ -6,10 +6,12 @@
 #include "COpenGLNoFixedDriver.h"
 #include "../CNullDriver.h"
 #include "IContextManager.h"
-#include "COGLNoFixedRenderer2D.h"
+
 
 #ifdef _IRR_COMPILE_WITH_OGL_NOFIXED_
 
+#include "COGLNoFixedCommon.h"
+#include "COGLNoFixedRenderer2D.h"
 #include "../COpenGLCoreRenderTarget.h"
 #include "COpenGLNoFixedCacheHandler.h"
 #include "COGLNoFixedMaterialRenderer.h"

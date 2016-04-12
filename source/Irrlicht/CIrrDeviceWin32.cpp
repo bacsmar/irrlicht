@@ -43,7 +43,7 @@
 #include "CEGLManager.h"
 #endif
 
-#if defined(_IRR_COMPILE_WITH_OPENGL_)
+#if defined(_IRR_COMPILE_WITH_OPENGL_) || defined(_IRR_COMPILE_WITH_OGL_NOFIXED_)
 #include "CWGLManager.h"
 #endif
 

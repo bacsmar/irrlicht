@@ -12,8 +12,8 @@
 
 #ifdef _IRR_COMPILE_WITH_OGL_NOFIXED_
 
-#include "COpenGLNoFixedCacheHandler.h"
 #include "COGLNoFixedCommon.h"
+#include "COpenGLNoFixedCacheHandler.h"
 #include "../CNullDriver.h"
 #include "../COpenGLCoreTexture.h"
 #include "COpenGLNoFixedExtensionHandler.h"
