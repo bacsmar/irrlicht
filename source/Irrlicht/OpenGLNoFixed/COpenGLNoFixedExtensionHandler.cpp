@@ -2,9 +2,9 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
-#include "COpenGLExtensionHandler.h"
+#include "COpenGLNoFixedExtensionHandler.h"
 
-#ifdef _IRR_COMPILE_WITH_OPENGL_
+#ifdef _IRR_COMPILE_WITH_OGL_NOFIXED_
 
 #include "irrString.h"
 #include "SMaterial.h"
@@ -15,7 +15,7 @@ namespace irr
 namespace video
 {
 
-COpenGLExtensionHandler::COpenGLExtensionHandler() :
+COpenGLNoFixedExtensionHandler::COpenGLNoFixedExtensionHandler() :
 		StencilBuffer(false), TextureCompressionExtension(false), MaxLights(1),
 		MaxAnisotropy(1), MaxUserClipPlanes(0), MaxAuxBuffers(0), MaxIndices(65535),
 		MaxTextureSize(1), MaxGeometryVerticesOut(0),
@@ -110,14 +110,14 @@ COpenGLExtensionHandler::COpenGLExtensionHandler() :
 }
 
 
-void COpenGLExtensionHandler::dump() const
+void COpenGLNoFixedExtensionHandler::dump() const
 {
 	for (u32 i=0; i<IRR_OpenGL_Feature_Count; ++i)
 		os::Printer::log(OpenGLFeatureStrings[i], FeatureAvailable[i]?" true":" false");
 }
 
 
-void COpenGLExtensionHandler::dumpFramebufferFormats() const
+void COpenGLNoFixedExtensionHandler::dumpFramebufferFormats() const
 {
 #ifdef _IRR_WINDOWS_API_
 	HDC hdc=wglGetCurrentDC();
@@ -331,7 +331,7 @@ void COpenGLExtensionHandler::dumpFramebufferFormats() const
 }
 
 
-void COpenGLExtensionHandler::initExtensions(bool stencilBuffer)
+void COpenGLNoFixedExtensionHandler::initExtensions(bool stencilBuffer)
 {
 	const f32 ogl_ver = core::fast_atof(reinterpret_cast<const c8*>(glGetString(GL_VERSION)));
 	Version = static_cast<u16>(core::floor32(ogl_ver)*100+core::round32(core::fract(ogl_ver)*10.0f));
@@ -762,12 +762,12 @@ void COpenGLExtensionHandler::initExtensions(bool stencilBuffer)
 #endif
 }
 
-const COpenGLCoreFeature& COpenGLExtensionHandler::getFeature() const
+const COpenGLCoreFeature& COpenGLNoFixedExtensionHandler::getFeature() const
 {
 	return Feature;
 }
 
-bool COpenGLExtensionHandler::queryFeature(E_VIDEO_DRIVER_FEATURE feature) const
+bool COpenGLNoFixedExtensionHandler::queryFeature(E_VIDEO_DRIVER_FEATURE feature) const
 {
 	switch (feature)
 	{

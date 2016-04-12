@@ -51,6 +51,9 @@ namespace video
 		/** Performs hardware accelerated rendering of 3D and 2D
 		primitives. */
 		EDT_OPENGL,
+
+		//! OpenGL programmable only pipeline device,.
+		EDT_OPENGL_NO_FIXED,
         
         //! OpenGL-ES 1.x driver, for embedded and mobile systems
 		EDT_OGLES1,

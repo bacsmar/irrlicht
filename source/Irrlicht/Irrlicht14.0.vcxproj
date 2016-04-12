@@ -914,6 +914,13 @@ xcopy /y /d  "$(SolutionDir)libs\GLES_SDK_v31\x86\*.lib" "$(OutDir)"</Command>
     <ClInclude Include="CZBuffer.h" />
     <ClInclude Include="ITriangleRenderer.h" />
     <ClInclude Include="IZBuffer.h" />
+    <ClInclude Include="OpenGLNoFixed\COGLFixedPipelineRenderer.h" />
+    <ClInclude Include="OpenGLNoFixed\COGLNoFixedCommon.h" />
+    <ClInclude Include="OpenGLNoFixed\COGLNoFixedMaterialRenderer.h" />
+    <ClInclude Include="OpenGLNoFixed\COGLNoFixedRenderer2D.h" />
+    <ClInclude Include="OpenGLNoFixed\COpenGLNoFixedDriver.h" />
+    <ClInclude Include="OpenGLNoFixed\COpenGLNoFixedCacheHandler.h" />
+    <ClInclude Include="OpenGLNoFixed\COpenGLNoFixedExtensionHandler.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="S2DVertex.h" />
     <ClInclude Include="SB3DStructs.h" />
@@ -1232,6 +1239,12 @@ xcopy /y /d  "$(SolutionDir)libs\GLES_SDK_v31\x86\*.lib" "$(OutDir)"</Command>
     <ClCompile Include="CLogger.cpp" />
     <ClCompile Include="COSOperator.cpp" />
     <ClCompile Include="Irrlicht.cpp" />
+    <ClCompile Include="OpenGLNoFixed\COGLFixedPipelineRenderer.cpp" />
+    <ClCompile Include="OpenGLNoFixed\COGLNoFixedMaterialRenderer.cpp" />
+    <ClCompile Include="OpenGLNoFixed\COGLNoFixedRenderer2D.cpp" />
+    <ClCompile Include="OpenGLNoFixed\COpenGLNoFixedDriver.cpp" />
+    <ClCompile Include="OpenGLNoFixed\COpenGLNoFixedCacheHandler.cpp" />
+    <ClCompile Include="OpenGLNoFixed\COpenGLNoFixedExtensionHandler.cpp" />
     <ClCompile Include="os.cpp" />
     <ClCompile Include="utf8.cpp" />
     <ClCompile Include="CProfiler.cpp" />

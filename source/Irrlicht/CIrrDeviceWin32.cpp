@@ -59,6 +59,10 @@ namespace irr
 		IVideoDriver* createOpenGLDriver(const irr::SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager);
 #endif
 
+#ifdef _IRR_COMPILE_WITH_OGL_NOFIXED_
+		IVideoDriver* createOGLNoFixedDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager);
+#endif		
+
 #ifdef _IRR_COMPILE_WITH_OGLES1_
         IVideoDriver* createOGLES1Driver(const irr::SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager);
 #endif
@@ -1206,6 +1210,21 @@ void CIrrDeviceWin32::createDriver()
 		ContextManager->initialize(CreationParams, video::SExposedVideoData(HWnd));
 
 		VideoDriver = video::createOpenGLDriver(CreationParams, FileSystem, ContextManager);
+
+		if (!VideoDriver)
+			os::Printer::log("Could not create OpenGL driver.", ELL_ERROR);
+#else
+		os::Printer::log("OpenGL driver was not compiled in.", ELL_ERROR);
+#endif
+		break;
+	case video::EDT_OPENGL_NO_FIXED:
+#ifdef _IRR_COMPILE_WITH_OGL_NOFIXED_
+		switchToFullScreen();
+
+		ContextManager = new video::CWGLManager();
+		ContextManager->initialize(CreationParams, video::SExposedVideoData(HWnd));
+
+		VideoDriver = video::createOGLNoFixedDriver(CreationParams, FileSystem, ContextManager);
 
 		if (!VideoDriver)
 			os::Printer::log("Could not create OpenGL driver.", ELL_ERROR);

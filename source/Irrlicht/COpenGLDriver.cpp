@@ -892,24 +892,35 @@ void COpenGLDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCoun
 				
 				// set vertex descriptors
 				auto descriptor = this->getVertexDescriptor(this->getCurrentMaterial().MaterialType, EVT_STANDARD);
-				if(descriptor)
+				if (descriptor)
 				{
 					u32 id = -1;
-					auto attribute = descriptor->getAttributeBySemantic(EVAS_POSITION);
-					descriptorArray.push_back(id = attribute->getBufferID());
-					extGlVertexAttribPointer(id, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
+					irr::video::IVertexAttribute* attribute = nullptr;
 
 					attribute = descriptor->getAttributeBySemantic(EVAS_TEXCOORD0);
-					descriptorArray.push_back(id = attribute->getBufferID());
-					extGlVertexAttribPointer(id, 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
+					if (attribute) {
+						descriptorArray.push_back(id = attribute->getBufferID());
+						extGlVertexAttribPointer(id, 2, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].TCoords);
+					}
+
+					attribute = descriptor->getAttributeBySemantic(EVAS_POSITION);
+					if (attribute) {
+						descriptorArray.push_back(id = attribute->getBufferID());
+						extGlVertexAttribPointer(id, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Pos);
+					}
 
 					attribute = descriptor->getAttributeBySemantic(EVAS_COLOR);
-					descriptorArray.push_back(id = attribute->getBufferID());
-					extGlVertexAttribPointer(id, 4, GL_UNSIGNED_BYTE, true, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Color);
+					if (attribute)
+					{
+						descriptorArray.push_back(id = attribute->getBufferID());
+						extGlVertexAttribPointer(id, 4, GL_UNSIGNED_BYTE, true, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Color);
+					}
 
 					attribute = descriptor->getAttributeBySemantic(EVAS_NORMAL);
-					descriptorArray.push_back(id = attribute->getBufferID());
-					extGlVertexAttribPointer(id, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Normal);
+					if (attribute) {
+						descriptorArray.push_back(id = attribute->getBufferID());
+						extGlVertexAttribPointer(id, 3, GL_FLOAT, false, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(vertices))[0].Normal);
+					}
 				}
 			}
 			else

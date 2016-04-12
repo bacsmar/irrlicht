@@ -112,6 +112,9 @@
     <Filter Include="Irrlicht\video\OpenGL Context">
       <UniqueIdentifier>{2512a519-e6c0-4b48-aae4-ded2d2500b95}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Irrlicht\video\OpenGL NoFixed">
+      <UniqueIdentifier>{0d45dbc7-3e2d-448b-86e6-ef91281e2f12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\IEventReceiver.h">
@@ -1387,6 +1390,27 @@
     <ClInclude Include="CVertexDescriptor.h">
       <Filter>Irrlicht\video\Null</Filter>
     </ClInclude>
+    <ClInclude Include="OpenGLNoFixed\COGLFixedPipelineRenderer.h">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLNoFixed\COpenGLNoFixedCacheHandler.h">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLNoFixed\COGLNoFixedCommon.h">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLNoFixed\COpenGLNoFixedExtensionHandler.h">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLNoFixed\COpenGLNoFixedDriver.h">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLNoFixed\COGLNoFixedMaterialRenderer.h">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLNoFixed\COGLNoFixedRenderer2D.h">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\changes.txt">
@@ -2356,6 +2380,24 @@
     </ClCompile>
     <ClCompile Include="CVertexDescriptor.cpp">
       <Filter>Irrlicht\video\Null</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLNoFixed\COGLFixedPipelineRenderer.cpp">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLNoFixed\COpenGLNoFixedCacheHandler.cpp">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLNoFixed\COpenGLNoFixedExtensionHandler.cpp">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLNoFixed\COpenGLNoFixedDriver.cpp">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLNoFixed\COGLNoFixedMaterialRenderer.cpp">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLNoFixed\COGLNoFixedRenderer2D.cpp">
+      <Filter>Irrlicht\video\OpenGL NoFixed</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

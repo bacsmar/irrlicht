@@ -7,15 +7,15 @@
 
 #include "IrrCompileConfig.h"
 
-#ifdef _IRR_COMPILE_WITH_OPENGL_
+#ifdef _IRR_COMPILE_WITH_OGL_NOFIXED_
 
 #include "EDriverFeatures.h"
 #include "irrTypes.h"
-#include "os.h"
+#include "../os.h"
 
-#include "COpenGLCommon.h"
+#include "COGLNoFixedCommon.h"
 
-#include "COpenGLCoreFeature.h"
+#include "../COpenGLCoreFeature.h"
 
 namespace irr
 {
@@ -505,7 +505,7 @@ static const char* const OpenGLFeatureStrings[] = {
 };
 
 
-class COpenGLExtensionHandler
+class COpenGLNoFixedExtensionHandler
 {
 	public:
 	enum EOpenGLFeatures {
@@ -992,7 +992,7 @@ class COpenGLExtensionHandler
 
 
 	// constructor
-	COpenGLExtensionHandler();
+	COpenGLNoFixedExtensionHandler();
 
 	// deferred initialization
 	void initExtensions(bool stencilBuffer);
@@ -1359,7 +1359,7 @@ class COpenGLExtensionHandler
 	#endif
 };
 
-inline void COpenGLExtensionHandler::irrGlActiveTexture(GLenum texture)
+inline void COpenGLNoFixedExtensionHandler::irrGlActiveTexture(GLenum texture)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlActiveTextureARB)
@@ -1373,7 +1373,7 @@ inline void COpenGLExtensionHandler::irrGlActiveTexture(GLenum texture)
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlClientActiveTexture(GLenum texture)
+inline void COpenGLNoFixedExtensionHandler::irrGlClientActiveTexture(GLenum texture)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlClientActiveTextureARB)
@@ -1383,7 +1383,7 @@ inline void COpenGLExtensionHandler::irrGlClientActiveTexture(GLenum texture)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGenPrograms(GLsizei n, GLuint *programs)
+inline void COpenGLNoFixedExtensionHandler::extGlGenPrograms(GLsizei n, GLuint *programs)
 {
 	if (programs)
 		memset(programs,0,n*sizeof(GLuint));
@@ -1401,7 +1401,7 @@ inline void COpenGLExtensionHandler::extGlGenPrograms(GLsizei n, GLuint *program
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlBindProgram(GLenum target, GLuint program)
+inline void COpenGLNoFixedExtensionHandler::extGlBindProgram(GLenum target, GLuint program)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBindProgramARB)
@@ -1417,7 +1417,7 @@ inline void COpenGLExtensionHandler::extGlBindProgram(GLenum target, GLuint prog
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlProgramString(GLenum target, GLenum format, GLsizei len, const GLvoid *string)
+inline void COpenGLNoFixedExtensionHandler::extGlProgramString(GLenum target, GLenum format, GLsizei len, const GLvoid *string)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlProgramStringARB)
@@ -1429,7 +1429,7 @@ inline void COpenGLExtensionHandler::extGlProgramString(GLenum target, GLenum fo
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlLoadProgram(GLenum target, GLuint id, GLsizei len, const GLubyte *string)
+inline void COpenGLNoFixedExtensionHandler::extGlLoadProgram(GLenum target, GLuint id, GLsizei len, const GLubyte *string)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlLoadProgramNV)
@@ -1441,7 +1441,7 @@ inline void COpenGLExtensionHandler::extGlLoadProgram(GLenum target, GLuint id, 
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlDeletePrograms(GLsizei n, const GLuint *programs)
+inline void COpenGLNoFixedExtensionHandler::extGlDeletePrograms(GLsizei n, const GLuint *programs)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDeleteProgramsARB)
@@ -1457,7 +1457,7 @@ inline void COpenGLExtensionHandler::extGlDeletePrograms(GLsizei n, const GLuint
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlProgramLocalParameter4fv(GLenum n, GLuint i, const GLfloat *f)
+inline void COpenGLNoFixedExtensionHandler::extGlProgramLocalParameter4fv(GLenum n, GLuint i, const GLfloat *f)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlProgramLocalParameter4fvARB)
@@ -1469,7 +1469,7 @@ inline void COpenGLExtensionHandler::extGlProgramLocalParameter4fv(GLenum n, GLu
 #endif
 }
 
-inline GLhandleARB COpenGLExtensionHandler::extGlCreateShaderObject(GLenum shaderType)
+inline GLhandleARB COpenGLNoFixedExtensionHandler::extGlCreateShaderObject(GLenum shaderType)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlCreateShaderObjectARB)
@@ -1482,7 +1482,7 @@ inline GLhandleARB COpenGLExtensionHandler::extGlCreateShaderObject(GLenum shade
 	return 0;
 }
 
-inline GLuint COpenGLExtensionHandler::extGlCreateShader(GLenum shaderType)
+inline GLuint COpenGLNoFixedExtensionHandler::extGlCreateShader(GLenum shaderType)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlCreateShader)
@@ -1495,7 +1495,7 @@ inline GLuint COpenGLExtensionHandler::extGlCreateShader(GLenum shaderType)
 	return 0;
 }
 
-inline void COpenGLExtensionHandler::extGlShaderSourceARB(GLhandleARB shader, GLsizei numOfStrings, const char **strings, const GLint *lenOfStrings)
+inline void COpenGLNoFixedExtensionHandler::extGlShaderSourceARB(GLhandleARB shader, GLsizei numOfStrings, const char **strings, const GLint *lenOfStrings)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlShaderSourceARB)
@@ -1507,7 +1507,7 @@ inline void COpenGLExtensionHandler::extGlShaderSourceARB(GLhandleARB shader, GL
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlShaderSource(GLuint shader, GLsizei numOfStrings, const char **strings, const GLint *lenOfStrings)
+inline void COpenGLNoFixedExtensionHandler::extGlShaderSource(GLuint shader, GLsizei numOfStrings, const char **strings, const GLint *lenOfStrings)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlShaderSource)
@@ -1519,7 +1519,7 @@ inline void COpenGLExtensionHandler::extGlShaderSource(GLuint shader, GLsizei nu
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlCompileShaderARB(GLhandleARB shader)
+inline void COpenGLNoFixedExtensionHandler::extGlCompileShaderARB(GLhandleARB shader)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlCompileShaderARB)
@@ -1531,7 +1531,7 @@ inline void COpenGLExtensionHandler::extGlCompileShaderARB(GLhandleARB shader)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlCompileShader(GLuint shader)
+inline void COpenGLNoFixedExtensionHandler::extGlCompileShader(GLuint shader)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlCompileShader)
@@ -1543,7 +1543,7 @@ inline void COpenGLExtensionHandler::extGlCompileShader(GLuint shader)
 #endif
 }
 
-inline GLhandleARB COpenGLExtensionHandler::extGlCreateProgramObject(void)
+inline GLhandleARB COpenGLNoFixedExtensionHandler::extGlCreateProgramObject(void)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlCreateProgramObjectARB)
@@ -1556,7 +1556,7 @@ inline GLhandleARB COpenGLExtensionHandler::extGlCreateProgramObject(void)
 	return 0;
 }
 
-inline GLuint COpenGLExtensionHandler::extGlCreateProgram(void)
+inline GLuint COpenGLNoFixedExtensionHandler::extGlCreateProgram(void)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlCreateProgram)
@@ -1569,7 +1569,7 @@ inline GLuint COpenGLExtensionHandler::extGlCreateProgram(void)
 	return 0;
 }
 
-inline void COpenGLExtensionHandler::extGlAttachObject(GLhandleARB program, GLhandleARB shader)
+inline void COpenGLNoFixedExtensionHandler::extGlAttachObject(GLhandleARB program, GLhandleARB shader)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlAttachObjectARB)
@@ -1581,7 +1581,7 @@ inline void COpenGLExtensionHandler::extGlAttachObject(GLhandleARB program, GLha
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlAttachShader(GLuint program, GLuint shader)
+inline void COpenGLNoFixedExtensionHandler::extGlAttachShader(GLuint program, GLuint shader)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlAttachShader)
@@ -1593,7 +1593,7 @@ inline void COpenGLExtensionHandler::extGlAttachShader(GLuint program, GLuint sh
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlLinkProgramARB(GLhandleARB program)
+inline void COpenGLNoFixedExtensionHandler::extGlLinkProgramARB(GLhandleARB program)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlLinkProgramARB)
@@ -1605,7 +1605,7 @@ inline void COpenGLExtensionHandler::extGlLinkProgramARB(GLhandleARB program)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlLinkProgram(GLuint program)
+inline void COpenGLNoFixedExtensionHandler::extGlLinkProgram(GLuint program)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlLinkProgram)
@@ -1617,7 +1617,7 @@ inline void COpenGLExtensionHandler::extGlLinkProgram(GLuint program)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUseProgramObject(GLhandleARB prog)
+inline void COpenGLNoFixedExtensionHandler::extGlUseProgramObject(GLhandleARB prog)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUseProgramObjectARB)
@@ -1629,7 +1629,7 @@ inline void COpenGLExtensionHandler::extGlUseProgramObject(GLhandleARB prog)
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlUseProgram(GLuint prog)
+inline void COpenGLNoFixedExtensionHandler::irrGlUseProgram(GLuint prog)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUseProgram)
@@ -1641,7 +1641,7 @@ inline void COpenGLExtensionHandler::irrGlUseProgram(GLuint prog)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlDeleteObject(GLhandleARB object)
+inline void COpenGLNoFixedExtensionHandler::extGlDeleteObject(GLhandleARB object)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDeleteObjectARB)
@@ -1653,7 +1653,7 @@ inline void COpenGLExtensionHandler::extGlDeleteObject(GLhandleARB object)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlDeleteProgram(GLuint object)
+inline void COpenGLNoFixedExtensionHandler::extGlDeleteProgram(GLuint object)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDeleteProgram)
@@ -1665,7 +1665,7 @@ inline void COpenGLExtensionHandler::extGlDeleteProgram(GLuint object)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlDeleteShader(GLuint shader)
+inline void COpenGLNoFixedExtensionHandler::extGlDeleteShader(GLuint shader)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDeleteShader)
@@ -1677,7 +1677,7 @@ inline void COpenGLExtensionHandler::extGlDeleteShader(GLuint shader)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetAttachedObjects(GLhandleARB program, GLsizei maxcount, GLsizei* count, GLhandleARB* shaders)
+inline void COpenGLNoFixedExtensionHandler::extGlGetAttachedObjects(GLhandleARB program, GLsizei maxcount, GLsizei* count, GLhandleARB* shaders)
 {
 	if (count)
 		*count=0;
@@ -1691,7 +1691,7 @@ inline void COpenGLExtensionHandler::extGlGetAttachedObjects(GLhandleARB program
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetAttachedShaders(GLuint program, GLsizei maxcount, GLsizei* count, GLuint* shaders)
+inline void COpenGLNoFixedExtensionHandler::extGlGetAttachedShaders(GLuint program, GLsizei maxcount, GLsizei* count, GLuint* shaders)
 {
 	if (count)
 		*count=0;
@@ -1705,7 +1705,7 @@ inline void COpenGLExtensionHandler::extGlGetAttachedShaders(GLuint program, GLs
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetInfoLog(GLhandleARB object, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog)
+inline void COpenGLNoFixedExtensionHandler::extGlGetInfoLog(GLhandleARB object, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog)
 {
 	if (length)
 		*length=0;
@@ -1719,7 +1719,7 @@ inline void COpenGLExtensionHandler::extGlGetInfoLog(GLhandleARB object, GLsizei
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetShaderInfoLog(GLuint shader, GLsizei maxLength, GLsizei *length, GLchar *infoLog)
+inline void COpenGLNoFixedExtensionHandler::extGlGetShaderInfoLog(GLuint shader, GLsizei maxLength, GLsizei *length, GLchar *infoLog)
 {
 	if (length)
 		*length=0;
@@ -1733,7 +1733,7 @@ inline void COpenGLExtensionHandler::extGlGetShaderInfoLog(GLuint shader, GLsize
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetProgramInfoLog(GLuint program, GLsizei maxLength, GLsizei *length, GLchar *infoLog)
+inline void COpenGLNoFixedExtensionHandler::extGlGetProgramInfoLog(GLuint program, GLsizei maxLength, GLsizei *length, GLchar *infoLog)
 {
 	if (length)
 		*length=0;
@@ -1747,7 +1747,7 @@ inline void COpenGLExtensionHandler::extGlGetProgramInfoLog(GLuint program, GLsi
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetObjectParameteriv(GLhandleARB object, GLenum type, GLint *param)
+inline void COpenGLNoFixedExtensionHandler::extGlGetObjectParameteriv(GLhandleARB object, GLenum type, GLint *param)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetObjectParameterivARB)
@@ -1759,7 +1759,7 @@ inline void COpenGLExtensionHandler::extGlGetObjectParameteriv(GLhandleARB objec
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetShaderiv(GLuint shader, GLenum type, GLint *param)
+inline void COpenGLNoFixedExtensionHandler::extGlGetShaderiv(GLuint shader, GLenum type, GLint *param)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetShaderiv)
@@ -1771,7 +1771,7 @@ inline void COpenGLExtensionHandler::extGlGetShaderiv(GLuint shader, GLenum type
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetProgramiv(GLuint program, GLenum type, GLint *param)
+inline void COpenGLNoFixedExtensionHandler::extGlGetProgramiv(GLuint program, GLenum type, GLint *param)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetProgramiv)
@@ -1783,7 +1783,7 @@ inline void COpenGLExtensionHandler::extGlGetProgramiv(GLuint program, GLenum ty
 #endif
 }
 
-inline GLint COpenGLExtensionHandler::extGlGetUniformLocationARB(GLhandleARB program, const char *name)
+inline GLint COpenGLNoFixedExtensionHandler::extGlGetUniformLocationARB(GLhandleARB program, const char *name)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetUniformLocationARB)
@@ -1796,7 +1796,7 @@ inline GLint COpenGLExtensionHandler::extGlGetUniformLocationARB(GLhandleARB pro
 	return 0;
 }
 
-inline GLint COpenGLExtensionHandler::extGlGetUniformLocation(GLuint program, const char *name)
+inline GLint COpenGLNoFixedExtensionHandler::extGlGetUniformLocation(GLuint program, const char *name)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetUniformLocation)
@@ -1809,7 +1809,7 @@ inline GLint COpenGLExtensionHandler::extGlGetUniformLocation(GLuint program, co
 	return 0;
 }
 
-inline void COpenGLExtensionHandler::extGlUniform1fv(GLint loc, GLsizei count, const GLfloat *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniform1fv(GLint loc, GLsizei count, const GLfloat *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniform1fvARB)
@@ -1821,7 +1821,7 @@ inline void COpenGLExtensionHandler::extGlUniform1fv(GLint loc, GLsizei count, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniform2fv(GLint loc, GLsizei count, const GLfloat *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniform2fv(GLint loc, GLsizei count, const GLfloat *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniform2fvARB)
@@ -1833,7 +1833,7 @@ inline void COpenGLExtensionHandler::extGlUniform2fv(GLint loc, GLsizei count, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniform3fv(GLint loc, GLsizei count, const GLfloat *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniform3fv(GLint loc, GLsizei count, const GLfloat *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniform3fvARB)
@@ -1845,7 +1845,7 @@ inline void COpenGLExtensionHandler::extGlUniform3fv(GLint loc, GLsizei count, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniform4fv(GLint loc, GLsizei count, const GLfloat *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniform4fv(GLint loc, GLsizei count, const GLfloat *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniform4fvARB)
@@ -1857,7 +1857,7 @@ inline void COpenGLExtensionHandler::extGlUniform4fv(GLint loc, GLsizei count, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniform1iv(GLint loc, GLsizei count, const GLint *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniform1iv(GLint loc, GLsizei count, const GLint *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniform1ivARB)
@@ -1869,7 +1869,7 @@ inline void COpenGLExtensionHandler::extGlUniform1iv(GLint loc, GLsizei count, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniform2iv(GLint loc, GLsizei count, const GLint *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniform2iv(GLint loc, GLsizei count, const GLint *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniform2ivARB)
@@ -1881,7 +1881,7 @@ inline void COpenGLExtensionHandler::extGlUniform2iv(GLint loc, GLsizei count, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniform3iv(GLint loc, GLsizei count, const GLint *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniform3iv(GLint loc, GLsizei count, const GLint *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniform3ivARB)
@@ -1893,7 +1893,7 @@ inline void COpenGLExtensionHandler::extGlUniform3iv(GLint loc, GLsizei count, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniform4iv(GLint loc, GLsizei count, const GLint *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniform4iv(GLint loc, GLsizei count, const GLint *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniform4ivARB)
@@ -1905,7 +1905,7 @@ inline void COpenGLExtensionHandler::extGlUniform4iv(GLint loc, GLsizei count, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniformMatrix2fv(GLint loc, GLsizei count, GLboolean transpose, const GLfloat *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniformMatrix2fv(GLint loc, GLsizei count, GLboolean transpose, const GLfloat *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniformMatrix2fvARB)
@@ -1917,7 +1917,7 @@ inline void COpenGLExtensionHandler::extGlUniformMatrix2fv(GLint loc, GLsizei co
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniformMatrix3fv(GLint loc, GLsizei count, GLboolean transpose, const GLfloat *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniformMatrix3fv(GLint loc, GLsizei count, GLboolean transpose, const GLfloat *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniformMatrix3fvARB)
@@ -1929,7 +1929,7 @@ inline void COpenGLExtensionHandler::extGlUniformMatrix3fv(GLint loc, GLsizei co
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlUniformMatrix4fv(GLint loc, GLsizei count, GLboolean transpose, const GLfloat *v)
+inline void COpenGLNoFixedExtensionHandler::extGlUniformMatrix4fv(GLint loc, GLsizei count, GLboolean transpose, const GLfloat *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUniformMatrix4fvARB)
@@ -1941,7 +1941,7 @@ inline void COpenGLExtensionHandler::extGlUniformMatrix4fv(GLint loc, GLsizei co
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetActiveUniformARB(GLhandleARB program,
+inline void COpenGLNoFixedExtensionHandler::extGlGetActiveUniformARB(GLhandleARB program,
 		GLuint index, GLsizei maxlength, GLsizei *length,
 		GLint *size, GLenum *type, GLcharARB *name)
 {
@@ -1957,7 +1957,7 @@ inline void COpenGLExtensionHandler::extGlGetActiveUniformARB(GLhandleARB progra
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetActiveUniform(GLuint program,
+inline void COpenGLNoFixedExtensionHandler::extGlGetActiveUniform(GLuint program,
 		GLuint index, GLsizei maxlength, GLsizei *length,
 		GLint *size, GLenum *type, GLchar *name)
 {
@@ -1973,7 +1973,7 @@ inline void COpenGLExtensionHandler::extGlGetActiveUniform(GLuint program,
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlDisableVertexAttribArray(GLuint index)
+inline void COpenGLNoFixedExtensionHandler::extGlDisableVertexAttribArray(GLuint index)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDisableVertexAttribArray)
@@ -1985,7 +1985,7 @@ inline void COpenGLExtensionHandler::extGlDisableVertexAttribArray(GLuint index)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlEnableVertexAttribArray(GLuint index)
+inline void COpenGLNoFixedExtensionHandler::extGlEnableVertexAttribArray(GLuint index)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlEnableVertexAttribArray)
@@ -1997,7 +1997,7 @@ inline void COpenGLExtensionHandler::extGlEnableVertexAttribArray(GLuint index)
 #endif
 }
 
-inline GLint COpenGLExtensionHandler::extGlGetAttribLocation(GLuint program, const GLchar *name)
+inline GLint COpenGLNoFixedExtensionHandler::extGlGetAttribLocation(GLuint program, const GLchar *name)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetAttribLocation)
@@ -2011,7 +2011,7 @@ inline GLint COpenGLExtensionHandler::extGlGetAttribLocation(GLuint program, con
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetActiveAttrib(GLuint program,
+inline void COpenGLNoFixedExtensionHandler::extGlGetActiveAttrib(GLuint program,
 	GLuint index, GLsizei maxlength, GLsizei *length,
 	GLint *size, GLenum *type, GLchar *name)
 {
@@ -2028,7 +2028,7 @@ inline void COpenGLExtensionHandler::extGlGetActiveAttrib(GLuint program,
 
 }
 
-inline void COpenGLExtensionHandler::extGlBindAttribLocation(GLuint program, GLuint index, const GLchar* name)
+inline void COpenGLNoFixedExtensionHandler::extGlBindAttribLocation(GLuint program, GLuint index, const GLchar* name)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBindAttribLocation)
@@ -2040,7 +2040,7 @@ inline void COpenGLExtensionHandler::extGlBindAttribLocation(GLuint program, GLu
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlVertexAttribPointer(GLuint index, GLint size, GLenum type,
+inline void COpenGLNoFixedExtensionHandler::extGlVertexAttribPointer(GLuint index, GLint size, GLenum type,
 	GLboolean normalized, GLsizei stride, const GLvoid *pointer)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
@@ -2053,7 +2053,7 @@ inline void COpenGLExtensionHandler::extGlVertexAttribPointer(GLuint index, GLin
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlBindFragDataLocation(GLuint program, GLuint color, const GLchar *name)
+inline void COpenGLNoFixedExtensionHandler::extGlBindFragDataLocation(GLuint program, GLuint color, const GLchar *name)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBindFragDataLocation)
@@ -2065,7 +2065,7 @@ inline void COpenGLExtensionHandler::extGlBindFragDataLocation(GLuint program, G
 #endif
 }
 
-inline GLint COpenGLExtensionHandler::extGlGetFragDataLocation(GLuint program, const GLchar *name)
+inline GLint COpenGLNoFixedExtensionHandler::extGlGetFragDataLocation(GLuint program, const GLchar *name)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetFragDataLocation)
@@ -2077,7 +2077,7 @@ inline GLint COpenGLExtensionHandler::extGlGetFragDataLocation(GLuint program, c
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlPointParameterf(GLint loc, GLfloat f)
+inline void COpenGLNoFixedExtensionHandler::extGlPointParameterf(GLint loc, GLfloat f)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlPointParameterfARB)
@@ -2089,7 +2089,7 @@ inline void COpenGLExtensionHandler::extGlPointParameterf(GLint loc, GLfloat f)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlPointParameterfv(GLint loc, const GLfloat *v)
+inline void COpenGLNoFixedExtensionHandler::extGlPointParameterfv(GLint loc, const GLfloat *v)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlPointParameterfvARB)
@@ -2101,7 +2101,7 @@ inline void COpenGLExtensionHandler::extGlPointParameterfv(GLint loc, const GLfl
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlStencilFuncSeparate (GLenum frontfunc, GLenum backfunc, GLint ref, GLuint mask)
+inline void COpenGLNoFixedExtensionHandler::extGlStencilFuncSeparate (GLenum frontfunc, GLenum backfunc, GLint ref, GLuint mask)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlStencilFuncSeparate)
@@ -2117,7 +2117,7 @@ inline void COpenGLExtensionHandler::extGlStencilFuncSeparate (GLenum frontfunc,
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlStencilOpSeparate (GLenum face, GLenum fail, GLenum zfail, GLenum zpass)
+inline void COpenGLNoFixedExtensionHandler::extGlStencilOpSeparate (GLenum face, GLenum fail, GLenum zfail, GLenum zpass)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlStencilOpSeparate)
@@ -2133,7 +2133,7 @@ inline void COpenGLExtensionHandler::extGlStencilOpSeparate (GLenum face, GLenum
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlCompressedTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width,
+inline void COpenGLNoFixedExtensionHandler::irrGlCompressedTexImage2D (GLenum target, GLint level, GLenum internalformat, GLsizei width,
 		GLsizei height, GLint border, GLsizei imageSize, const void* data)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
@@ -2146,7 +2146,7 @@ inline void COpenGLExtensionHandler::irrGlCompressedTexImage2D (GLenum target, G
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+inline void COpenGLNoFixedExtensionHandler::irrGlCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void* data)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
@@ -2159,7 +2159,7 @@ inline void COpenGLExtensionHandler::irrGlCompressedTexSubImage2D(GLenum target,
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlBindFramebuffer(GLenum target, GLuint framebuffer)
+inline void COpenGLNoFixedExtensionHandler::irrGlBindFramebuffer(GLenum target, GLuint framebuffer)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBindFramebuffer)
@@ -2175,7 +2175,7 @@ inline void COpenGLExtensionHandler::irrGlBindFramebuffer(GLenum target, GLuint 
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlDeleteFramebuffers(GLsizei n, const GLuint *framebuffers)
+inline void COpenGLNoFixedExtensionHandler::irrGlDeleteFramebuffers(GLsizei n, const GLuint *framebuffers)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDeleteFramebuffers)
@@ -2191,7 +2191,7 @@ inline void COpenGLExtensionHandler::irrGlDeleteFramebuffers(GLsizei n, const GL
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlGenFramebuffers(GLsizei n, GLuint *framebuffers)
+inline void COpenGLNoFixedExtensionHandler::irrGlGenFramebuffers(GLsizei n, GLuint *framebuffers)
 {
 	if (framebuffers)
 		memset(framebuffers,0,n*sizeof(GLuint));
@@ -2209,7 +2209,7 @@ inline void COpenGLExtensionHandler::irrGlGenFramebuffers(GLsizei n, GLuint *fra
 #endif
 }
 
-inline GLenum COpenGLExtensionHandler::irrGlCheckFramebufferStatus(GLenum target)
+inline GLenum COpenGLNoFixedExtensionHandler::irrGlCheckFramebufferStatus(GLenum target)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlCheckFramebufferStatus)
@@ -2228,7 +2228,7 @@ inline GLenum COpenGLExtensionHandler::irrGlCheckFramebufferStatus(GLenum target
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+inline void COpenGLNoFixedExtensionHandler::irrGlFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlFramebufferTexture2D)
@@ -2244,7 +2244,7 @@ inline void COpenGLExtensionHandler::irrGlFramebufferTexture2D(GLenum target, GL
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlBindRenderbuffer(GLenum target, GLuint renderbuffer)
+inline void COpenGLNoFixedExtensionHandler::irrGlBindRenderbuffer(GLenum target, GLuint renderbuffer)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBindRenderbuffer)
@@ -2260,7 +2260,7 @@ inline void COpenGLExtensionHandler::irrGlBindRenderbuffer(GLenum target, GLuint
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers)
+inline void COpenGLNoFixedExtensionHandler::irrGlDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDeleteRenderbuffers)
@@ -2276,7 +2276,7 @@ inline void COpenGLExtensionHandler::irrGlDeleteRenderbuffers(GLsizei n, const G
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
+inline void COpenGLNoFixedExtensionHandler::irrGlGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
 {
 	if (renderbuffers)
 		memset(renderbuffers,0,n*sizeof(GLuint));
@@ -2294,7 +2294,7 @@ inline void COpenGLExtensionHandler::irrGlGenRenderbuffers(GLsizei n, GLuint *re
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+inline void COpenGLNoFixedExtensionHandler::irrGlRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlRenderbufferStorage)
@@ -2310,7 +2310,7 @@ inline void COpenGLExtensionHandler::irrGlRenderbufferStorage(GLenum target, GLe
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+inline void COpenGLNoFixedExtensionHandler::irrGlFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlFramebufferRenderbuffer)
@@ -2326,7 +2326,7 @@ inline void COpenGLExtensionHandler::irrGlFramebufferRenderbuffer(GLenum target,
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlGenerateMipmap(GLenum target)
+inline void COpenGLNoFixedExtensionHandler::irrGlGenerateMipmap(GLenum target)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGenerateMipmap)
@@ -2342,7 +2342,7 @@ inline void COpenGLExtensionHandler::irrGlGenerateMipmap(GLenum target)
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlActiveStencilFace(GLenum face)
+inline void COpenGLNoFixedExtensionHandler::irrGlActiveStencilFace(GLenum face)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlActiveStencilFaceEXT)
@@ -2354,12 +2354,12 @@ inline void COpenGLExtensionHandler::irrGlActiveStencilFace(GLenum face)
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlDrawBuffer(GLenum mode)
+inline void COpenGLNoFixedExtensionHandler::irrGlDrawBuffer(GLenum mode)
 {
 	glDrawBuffer(mode);
 }
 
-inline void COpenGLExtensionHandler::irrGlDrawBuffers(GLsizei n, const GLenum *bufs)
+inline void COpenGLNoFixedExtensionHandler::irrGlDrawBuffers(GLsizei n, const GLenum *bufs)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDrawBuffersARB)
@@ -2376,7 +2376,7 @@ inline void COpenGLExtensionHandler::irrGlDrawBuffers(GLsizei n, const GLenum *b
 }
 
 
-inline void COpenGLExtensionHandler::extGlGenBuffers(GLsizei n, GLuint *buffers)
+inline void COpenGLNoFixedExtensionHandler::extGlGenBuffers(GLsizei n, GLuint *buffers)
 {
 	if (buffers)
 		memset(buffers,0,n*sizeof(GLuint));
@@ -2390,7 +2390,7 @@ inline void COpenGLExtensionHandler::extGlGenBuffers(GLsizei n, GLuint *buffers)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlBindBuffer(GLenum target, GLuint buffer)
+inline void COpenGLNoFixedExtensionHandler::extGlBindBuffer(GLenum target, GLuint buffer)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBindBufferARB)
@@ -2402,7 +2402,7 @@ inline void COpenGLExtensionHandler::extGlBindBuffer(GLenum target, GLuint buffe
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlBufferData(GLenum target, GLsizeiptrARB size, const GLvoid *data, GLenum usage)
+inline void COpenGLNoFixedExtensionHandler::extGlBufferData(GLenum target, GLsizeiptrARB size, const GLvoid *data, GLenum usage)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBufferDataARB)
@@ -2414,7 +2414,7 @@ inline void COpenGLExtensionHandler::extGlBufferData(GLenum target, GLsizeiptrAR
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlDeleteBuffers(GLsizei n, const GLuint *buffers)
+inline void COpenGLNoFixedExtensionHandler::extGlDeleteBuffers(GLsizei n, const GLuint *buffers)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDeleteBuffersARB)
@@ -2426,7 +2426,7 @@ inline void COpenGLExtensionHandler::extGlDeleteBuffers(GLsizei n, const GLuint 
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlBufferSubData(GLenum target, GLintptrARB offset, GLsizeiptrARB size, const GLvoid *data)
+inline void COpenGLNoFixedExtensionHandler::extGlBufferSubData(GLenum target, GLintptrARB offset, GLsizeiptrARB size, const GLvoid *data)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBufferSubDataARB)
@@ -2438,7 +2438,7 @@ inline void COpenGLExtensionHandler::extGlBufferSubData(GLenum target, GLintptrA
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetBufferSubData(GLenum target, GLintptrARB offset, GLsizeiptrARB size, GLvoid *data)
+inline void COpenGLNoFixedExtensionHandler::extGlGetBufferSubData(GLenum target, GLintptrARB offset, GLsizeiptrARB size, GLvoid *data)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetBufferSubDataARB)
@@ -2450,7 +2450,7 @@ inline void COpenGLExtensionHandler::extGlGetBufferSubData(GLenum target, GLintp
 #endif
 }
 
-inline void *COpenGLExtensionHandler::extGlMapBuffer(GLenum target, GLenum access)
+inline void *COpenGLNoFixedExtensionHandler::extGlMapBuffer(GLenum target, GLenum access)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlMapBufferARB)
@@ -2464,7 +2464,7 @@ inline void *COpenGLExtensionHandler::extGlMapBuffer(GLenum target, GLenum acces
 #endif
 }
 
-inline GLboolean COpenGLExtensionHandler::extGlUnmapBuffer(GLenum target)
+inline GLboolean COpenGLNoFixedExtensionHandler::extGlUnmapBuffer(GLenum target)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlUnmapBufferARB)
@@ -2478,7 +2478,7 @@ inline GLboolean COpenGLExtensionHandler::extGlUnmapBuffer(GLenum target)
 #endif
 }
 
-inline GLboolean COpenGLExtensionHandler::extGlIsBuffer(GLuint buffer)
+inline GLboolean COpenGLNoFixedExtensionHandler::extGlIsBuffer(GLuint buffer)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlIsBufferARB)
@@ -2492,7 +2492,7 @@ inline GLboolean COpenGLExtensionHandler::extGlIsBuffer(GLuint buffer)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
+inline void COpenGLNoFixedExtensionHandler::extGlGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetBufferParameterivARB)
@@ -2504,7 +2504,7 @@ inline void COpenGLExtensionHandler::extGlGetBufferParameteriv(GLenum target, GL
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetBufferPointerv(GLenum target, GLenum pname, GLvoid **params)
+inline void COpenGLNoFixedExtensionHandler::extGlGetBufferPointerv(GLenum target, GLenum pname, GLvoid **params)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetBufferPointervARB)
@@ -2517,7 +2517,7 @@ inline void COpenGLExtensionHandler::extGlGetBufferPointerv(GLenum target, GLenu
 }
 
 
-inline void COpenGLExtensionHandler::extGlProvokingVertex(GLenum mode)
+inline void COpenGLNoFixedExtensionHandler::extGlProvokingVertex(GLenum mode)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (FeatureAvailable[IRR_ARB_provoking_vertex] && pGlProvokingVertexARB)
@@ -2533,7 +2533,7 @@ inline void COpenGLExtensionHandler::extGlProvokingVertex(GLenum mode)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlProgramParameteri(GLuint program, GLenum pname, GLint value)
+inline void COpenGLNoFixedExtensionHandler::extGlProgramParameteri(GLuint program, GLenum pname, GLint value)
 {
 #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
 	if (queryFeature(EVDF_GEOMETRY_SHADER))
@@ -2554,7 +2554,7 @@ inline void COpenGLExtensionHandler::extGlProgramParameteri(GLuint program, GLen
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGenQueries(GLsizei n, GLuint *ids)
+inline void COpenGLNoFixedExtensionHandler::extGlGenQueries(GLsizei n, GLuint *ids)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGenQueriesARB)
@@ -2570,7 +2570,7 @@ inline void COpenGLExtensionHandler::extGlGenQueries(GLsizei n, GLuint *ids)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlDeleteQueries(GLsizei n, const GLuint *ids)
+inline void COpenGLNoFixedExtensionHandler::extGlDeleteQueries(GLsizei n, const GLuint *ids)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlDeleteQueriesARB)
@@ -2586,7 +2586,7 @@ inline void COpenGLExtensionHandler::extGlDeleteQueries(GLsizei n, const GLuint 
 #endif
 }
 
-inline GLboolean COpenGLExtensionHandler::extGlIsQuery(GLuint id)
+inline GLboolean COpenGLNoFixedExtensionHandler::extGlIsQuery(GLuint id)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlIsQueryARB)
@@ -2603,7 +2603,7 @@ inline GLboolean COpenGLExtensionHandler::extGlIsQuery(GLuint id)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlBeginQuery(GLenum target, GLuint id)
+inline void COpenGLNoFixedExtensionHandler::extGlBeginQuery(GLenum target, GLuint id)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBeginQueryARB)
@@ -2619,7 +2619,7 @@ inline void COpenGLExtensionHandler::extGlBeginQuery(GLenum target, GLuint id)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlEndQuery(GLenum target)
+inline void COpenGLNoFixedExtensionHandler::extGlEndQuery(GLenum target)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlEndQueryARB)
@@ -2635,7 +2635,7 @@ inline void COpenGLExtensionHandler::extGlEndQuery(GLenum target)
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetQueryiv(GLenum target, GLenum pname, GLint *params)
+inline void COpenGLNoFixedExtensionHandler::extGlGetQueryiv(GLenum target, GLenum pname, GLint *params)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetQueryivARB)
@@ -2647,7 +2647,7 @@ inline void COpenGLExtensionHandler::extGlGetQueryiv(GLenum target, GLenum pname
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetQueryObjectiv(GLuint id, GLenum pname, GLint *params)
+inline void COpenGLNoFixedExtensionHandler::extGlGetQueryObjectiv(GLuint id, GLenum pname, GLint *params)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetQueryObjectivARB)
@@ -2663,7 +2663,7 @@ inline void COpenGLExtensionHandler::extGlGetQueryObjectiv(GLuint id, GLenum pna
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
+inline void COpenGLNoFixedExtensionHandler::extGlGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlGetQueryObjectuivARB)
@@ -2679,7 +2679,7 @@ inline void COpenGLExtensionHandler::extGlGetQueryObjectuiv(GLuint id, GLenum pn
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
+inline void COpenGLNoFixedExtensionHandler::irrGlBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBlendFuncSeparate)
@@ -2695,7 +2695,7 @@ inline void COpenGLExtensionHandler::irrGlBlendFuncSeparate(GLenum sfactorRGB, G
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlBlendEquation(GLenum mode)
+inline void COpenGLNoFixedExtensionHandler::irrGlBlendEquation(GLenum mode)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (pGlBlendEquation)
@@ -2711,7 +2711,7 @@ inline void COpenGLExtensionHandler::irrGlBlendEquation(GLenum mode)
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlEnableIndexed(GLenum target, GLuint index)
+inline void COpenGLNoFixedExtensionHandler::irrGlEnableIndexed(GLenum target, GLuint index)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (FeatureAvailable[IRR_EXT_draw_buffers2] && pGlEnableIndexedEXT)
@@ -2723,7 +2723,7 @@ inline void COpenGLExtensionHandler::irrGlEnableIndexed(GLenum target, GLuint in
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlDisableIndexed(GLenum target, GLuint index)
+inline void COpenGLNoFixedExtensionHandler::irrGlDisableIndexed(GLenum target, GLuint index)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (FeatureAvailable[IRR_EXT_draw_buffers2] && pGlDisableIndexedEXT)
@@ -2735,7 +2735,7 @@ inline void COpenGLExtensionHandler::irrGlDisableIndexed(GLenum target, GLuint i
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlColorMaskIndexed(GLuint buf, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
+inline void COpenGLNoFixedExtensionHandler::irrGlColorMaskIndexed(GLuint buf, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (FeatureAvailable[IRR_EXT_draw_buffers2] && pGlColorMaskIndexedEXT)
@@ -2747,7 +2747,7 @@ inline void COpenGLExtensionHandler::irrGlColorMaskIndexed(GLuint buf, GLboolean
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlBlendFuncIndexed(GLuint buf, GLenum src, GLenum dst)
+inline void COpenGLNoFixedExtensionHandler::irrGlBlendFuncIndexed(GLuint buf, GLenum src, GLenum dst)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (FeatureAvailable[IRR_ARB_draw_buffers_blend] && pGlBlendFunciARB)
@@ -2763,7 +2763,7 @@ inline void COpenGLExtensionHandler::irrGlBlendFuncIndexed(GLuint buf, GLenum sr
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlBlendFuncSeparateIndexed(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
+inline void COpenGLNoFixedExtensionHandler::irrGlBlendFuncSeparateIndexed(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (FeatureAvailable[IRR_ARB_draw_buffers_blend] && pGlBlendFuncSeparateiARB)
@@ -2779,7 +2779,7 @@ inline void COpenGLExtensionHandler::irrGlBlendFuncSeparateIndexed(GLuint buf, G
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlBlendEquationIndexed(GLuint buf, GLenum mode)
+inline void COpenGLNoFixedExtensionHandler::irrGlBlendEquationIndexed(GLuint buf, GLenum mode)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (FeatureAvailable[IRR_ARB_draw_buffers_blend] && pGlBlendEquationiARB)
@@ -2795,7 +2795,7 @@ inline void COpenGLExtensionHandler::irrGlBlendEquationIndexed(GLuint buf, GLenu
 #endif
 }
 
-inline void COpenGLExtensionHandler::irrGlBlendEquationSeparateIndexed(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
+inline void COpenGLNoFixedExtensionHandler::irrGlBlendEquationSeparateIndexed(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
 {
 #ifdef _IRR_OPENGL_USE_EXTPOINTER_
 	if (FeatureAvailable[IRR_ARB_draw_buffers_blend] && pGlBlendEquationSeparateiARB)
@@ -2811,7 +2811,7 @@ inline void COpenGLExtensionHandler::irrGlBlendEquationSeparateIndexed(GLuint bu
 #endif
 }
 
-inline void COpenGLExtensionHandler::extGlSwapInterval(int interval)
+inline void COpenGLNoFixedExtensionHandler::extGlSwapInterval(int interval)
 {
 	// we have wglext, so try to use that
 #if defined(_IRR_WINDOWS_API_) && defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
