@@ -96,14 +96,14 @@ namespace irr
 			dev = new CIrrDeviceiOS(params);
 #endif
 
-#ifdef _IRR_COMPILE_WITH_ANDROID_DEVICE_
-		if (params.DeviceType == EIDT_ANDROID || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceAndroid(params);
-#endif
-
 #ifdef _IRR_COMPILE_WITH_ANDROID_DEVICE_PAKAL
 		if (params.DeviceType == EIDT_ANDROID || (!dev && params.DeviceType == EIDT_BEST))
 			dev = new CIrrDeviceAndroidPakal(params);
+#endif
+
+#ifdef _IRR_COMPILE_WITH_ANDROID_DEVICE_
+		if (params.DeviceType == EIDT_ANDROID || (!dev && params.DeviceType == EIDT_BEST))
+			dev = new CIrrDeviceAndroid(params);
 #endif
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
