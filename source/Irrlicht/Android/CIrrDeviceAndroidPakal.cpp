@@ -14,6 +14,7 @@
 #include <Android/CAndroidAssetFileArchive.h>
 #include <CEGLManager.h>
 #include <os.h>
+#include "CDummyEGLManager.h"
 
 namespace irr
 {
@@ -142,7 +143,11 @@ namespace irr
 		: CIrrDeviceStub(param), m_is_window_focused(false), m_is_window_active(false), m_is_window_minimized(false), m_is_initialized(false)
 	{
 		// Create EGL manager.		
+#ifdef _IRR_COMPILE_WITH_DUMMY_EGL_MANAGER_
+		ContextManager = new video::CDummyEGLManager();		
+#else		
 		ContextManager = new video::CEGLManager();
+#endif
 		setup_window();
 	}
 
