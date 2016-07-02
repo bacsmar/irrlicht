@@ -222,6 +222,8 @@ IImage* CImageLoaderBMP::loadImage(io::IReadFile* file) const
 
 	file->read(&header, sizeof(header));
 
+	u32 Width = header.Width;
+
 #ifdef __BIG_ENDIAN__
 	header.Id = os::Byteswap::byteswap(header.Id);
 	header.FileSize = os::Byteswap::byteswap(header.FileSize);
@@ -282,7 +284,7 @@ IImage* CImageLoaderBMP::loadImage(io::IReadFile* file) const
 
 	file->seek(header.BitmapDataOffset);
 
-	f32 t = (header.Width) * (header.BPP / 8.0f);
+	f32 t = Width * (header.BPP * 0.125f);	// (header.Width) * (header.BPP / 8.0f)
 	s32 widthInBytes = (s32)t;
 	t -= widthInBytes;
 	if (t!=0.0f)
