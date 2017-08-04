@@ -1,6 +1,23 @@
 --------------------------
 Changes in 1.9 (not yet released)
 
+- ISceneManager::getMesh can now creates meshes with alternative cache-names.
+- Lets the BSP loader find textures inserted with relative paths. Thx@ curaga for patch
+- Slightly simplified ALLOC_STRATEGY_DOUBLE in arrays
+- Add alternavive BoundingBox calculation for BillboardSceneNode which can take in a camera node. Thx @Seven and @JacKDuRdEn for bugreports.
+- FPS camera now supports keyboard rotation.
+- Base FPS-camera movement on last position of mouse instead of always center (works better on platforms where cursor-placement is not allowed)
+- Octrees with other vertex types than EVT_2TCOORDS can now also use VBO's.
+- Add IOctreeSceneNode interface to control parameters like VBO usage and polygon clipping checks for octree scene nodes.
+- Add support for different geometric primitivs to meshbuffers. Thanks @gerdb for patch proposal (http://irrlicht.sourceforge.net/forum/viewtopic.php?f=7&t=45999)
+- change SEvent::SUserEvent.UserData1 and SEvent::SUserEvent.UserData1 from s32 to size_t to avoid cutting numbers on some 64-bit platforms (SDL and Windows)
+- Improve speed of draw3DBox (OpenGL and D3D9). Thanks @zerochen for patch (https://sourceforge.net/p/irrlicht/patches/256)
+- Support more keys on OSX "[]\". Thanks @neoascetic for patch (#313).
+- Fix IBillboardTextSceneNode::setTextColor which did nothing in the past. It now maps to setColor instead.
+- Add access functions to IBillboardTextSceneNode (getText, getFont).
+- Add access functions to ITextSceneNode (getText, getTextColor, setFont, getFont).
+- Try harder to move Window to custom WindowPosition set in SIrrlichtCreationParameters on X11. Thx@ Hernan Ezequiel Di Giorgi for the patch (#304).
+- Fix bug in virtual filessystem which prevented createFileList from working. Thx @Cube for reporting a problem.
 - ITriangleSelector now can also return meshbuffer collision information. 
 - core::string::split now adds delimiter to token before delimiter when keepSeparators is true. That way we never end up with 2 tokens for an original string with a single character.
 - Bugfix: SMesh::recalculateBoundingBox() does now ignore empty boundingboxes of meshbuffers instead of adding them.
@@ -158,6 +175,16 @@ should now be fps independentn
 
 --------------------------
 Changes in 1.8.5
+ - Fix bug in cursor positions when compiled with newer Windows SDK's (v110 in VS2012) and running on Systems >= Windows Vista in windowed mode.
+   Thanks @Mustapha Tachouct for the bugreport and patch proposal. Also thanks @BakeMyCake for an earlier report.
+ - IOSOperator::getSysteMemory() no longer returns incorrect values with >2GB. Thanks @Eduline - human development for report and patch.
+ - Increase KEY_KEY_CODES_COUNT to fix problem with laptop keyboards which return the keycode 0xff for the function key. Thx @Klokancz for bugreport and patch.
+ - Fix bug when calling activateJoysticks on windows several times. It had appened joystick information instead of replacing it, thereby increasing joystick number on each call.
+   Only happened compiling with _IRR_COMPILE_WITH_DIRECTINPUT_JOYSTICK_ (which is the default). Linux and SDL implementation not affected.
+   Thx @Andrea Demetrio for the bugreport.
+ - Fix bug in fast_atof when reading floating point numbers with more than 16 digits past the dot. Those produced completely wrong results (sometimes even causing INF numbers).
+   This bug also did cause many meshloaders to have problems with certain meshes (basically all text-based formats are affected).
+ - Accuracy of fast_atof is back to older Irrlicht versions (fixes test warnings, usually not a noticable problem).
  - Fix crash in eventhandling when calling remove() on a contextmenu while it has focus.
  - CImageLoaderJPG::isALoadableFileFormat uses a test which allows to load more jpg formats (for example uncompressed jpg's). Thx @Yaron Cohen-Tal for report, test-image and his help with the patch.
 

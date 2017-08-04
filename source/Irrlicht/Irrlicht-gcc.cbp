@@ -489,6 +489,7 @@
 		<Unit filename="../../include/IMeshWriter.h" />
 		<Unit filename="../../include/IMetaTriangleSelector.h" />
 		<Unit filename="../../include/IOSOperator.h" />
+		<Unit filename="../../include/IOctreeSceneNode.h" />
 		<Unit filename="../../include/IParticleAffector.h" />
 		<Unit filename="../../include/IParticleAnimatedMeshSceneNodeEmitter.h" />
 		<Unit filename="../../include/IParticleAttractionAffector.h" />
@@ -824,6 +825,11 @@
 		<Unit filename="COgreMeshFileLoader.h" />
 		<Unit filename="COpenGLCacheHandler.cpp" />
 		<Unit filename="COpenGLCacheHandler.h" />
+		<Unit filename="COpenGLCommon.h" />
+		<Unit filename="COpenGLCoreCacheHandler.h" />
+		<Unit filename="COpenGLCoreFeature.h" />
+		<Unit filename="COpenGLCoreRenderTarget.h" />
+		<Unit filename="COpenGLCoreTexture.h" />
 		<Unit filename="COpenGLDriver.cpp" />
 		<Unit filename="COpenGLDriver.h" />
 		<Unit filename="COpenGLExtensionHandler.cpp" />
