@@ -131,6 +131,8 @@ public:
 
 			Image.clear();
 		}
+
+		Driver->testGLError(__LINE__);
 	}
 
 	COpenGLCoreTexture(const io::path& name, const core::dimension2d<u32>& size, ECOLOR_FORMAT format, TOpenGLDriver* driver) : ITexture(name, ETT_2D), Driver(driver), TextureType(GL_TEXTURE_2D),
@@ -153,7 +155,10 @@ public:
 
 		Pitch = Size.Width * IImage::getBitsPerPixelFromFormat(ColorFormat) / 8;
 
-		Driver->getColorFormatParameters(ColorFormat, InternalFormat, PixelFormat, PixelType, &Converter);
+		if ( !Driver->getColorFormatParameters(ColorFormat, InternalFormat, PixelFormat, PixelType, &Converter) )
+		{
+			os::Printer::log("COpenGLCoreTexture: Color format is not supported", ColorFormatNames[ColorFormat < ECF_UNKNOWN?ColorFormat:ECF_UNKNOWN], ELL_ERROR);
+		}
 
 		glGenTextures(1, &TextureName);
 
@@ -176,6 +181,12 @@ public:
 		glTexImage2D(GL_TEXTURE_2D, 0, InternalFormat, Size.Width, Size.Height, 0, PixelFormat, PixelType, 0);
 
 		Driver->getCacheHandler()->getTextureCache().set(0, prevTexture);
+		if ( Driver->testGLError(__LINE__) )
+		{
+			char msg[256];
+			snprintf_irr(msg, 256, "COpenGLCoreTexture: InternalFormat:0x%04x PixelFormat:0x%04x", (int)InternalFormat, (int)PixelFormat);
+			os::Printer::log(msg, ELL_ERROR);
+		}
 	}
 
 	virtual ~COpenGLCoreTexture()
@@ -187,7 +198,7 @@ public:
 
 		if (LockImage)
 			LockImage->drop();
-		
+
 		for (u32 i = 0; i < Image.size(); ++i)
 			Image[i]->drop();
 	}
@@ -450,7 +461,11 @@ protected:
 		OriginalColorFormat = image->getColorFormat();
 		ColorFormat = getBestColorFormat(OriginalColorFormat);
 
-		Driver->getColorFormatParameters(ColorFormat, InternalFormat, PixelFormat, PixelType, &Converter);
+		if ( !Driver->getColorFormatParameters(ColorFormat, InternalFormat, PixelFormat, PixelType, &Converter) )
+		{
+			os::Printer::log("getImageValues: Color format is not supported", ColorFormatNames[ColorFormat < ECF_UNKNOWN?ColorFormat:ECF_UNKNOWN], ELL_ERROR);
+			// not quitting as it will use some alternative internal format
+		}
 
 		if (IImage::isCompressedFormat(image->getColorFormat()))
 		{

@@ -7,6 +7,10 @@
 
 #include "IrrCompileConfig.h"
 
+#if defined(__GNUC__)
+	#include <limits.h>	// for __WORDSIZE
+#endif
+
 namespace irr
 {
 
@@ -72,8 +76,8 @@ typedef signed int		s32;
 /** This is a typedef for 64bit uint, it ensures portability of the engine. */
 #if defined(_MSC_VER) || ((__BORLANDC__ >= 0x530) && !defined(__STRICT_ANSI__))
 typedef unsigned __int64			u64;
-#elif __GNUC__
-#if __WORDSIZE == 64
+#elif defined(__GNUC__)
+#if defined(__WORDSIZE) && __WORDSIZE == 64
 typedef unsigned long int			u64;
 #else
 __extension__ typedef unsigned long long	u64;
@@ -86,8 +90,8 @@ typedef unsigned long long			u64;
 /** This is a typedef for 64bit int, it ensures portability of the engine. */
 #if defined(_MSC_VER) || ((__BORLANDC__ >= 0x530) && !defined(__STRICT_ANSI__))
 typedef __int64					s64;
-#elif __GNUC__
-#if __WORDSIZE == 64
+#elif defined(__GNUC__)
+#if defined(__WORDSIZE) && __WORDSIZE == 64
 typedef long int				s64;
 #else
 __extension__ typedef long long			s64;
@@ -150,7 +154,7 @@ namespace irr
 
 //! Type name for character type used by the file system.
 /** Should the wide character version of the FileSystem be used it is a
-16 bit character variable. Used for unicode Filesystem and unicode strings.
+16 bit character variable. Used for Unicode Filesystem and Unicode strings.
 Else it is a 8 bit character variable. Used for ansi Filesystem and non-unicode
 strings
 */
@@ -225,7 +229,7 @@ virtual void somefunc() _IRR_OVERRIDE_;
 #endif
 
 //! ignore VC8 warning deprecated
-/** The microsoft compiler */
+/** The Microsoft compiler */
 #if defined(_IRR_WINDOWS_API_) && defined(_MSC_VER) && (_MSC_VER >= 1400)
 	//#pragma warning( disable: 4996)
 	//#define _CRT_SECURE_NO_DEPRECATE 1

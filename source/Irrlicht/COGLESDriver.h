@@ -262,8 +262,8 @@ namespace video
 		//! Returns an image created from the last rendered frame.
 		virtual IImage* createScreenShot(video::ECOLOR_FORMAT format=video::ECF_UNKNOWN, video::E_RENDER_TARGET target=video::ERT_FRAME_BUFFER) _IRR_OVERRIDE_;
 
-		//! checks if an OpenGL error has happened and prints it
-		bool testGLError();
+		//! checks if an OpenGL error has happened and prints it (+ some internal code which is usually the line number)
+		bool testGLError(int code=0);
 
 		//! Set/unset a clipping plane.
 		virtual bool setClipPlane(u32 index, const core::plane3df& plane, bool enable=false) _IRR_OVERRIDE_;
@@ -278,9 +278,12 @@ namespace video
 		}
 
 		//! Get the maximal texture size for this driver
-		core::dimension2du getMaxTextureSize() const _IRR_OVERRIDE_;
+		virtual core::dimension2du getMaxTextureSize() const _IRR_OVERRIDE_;
 
-		void removeTexture(ITexture* texture) _IRR_OVERRIDE_;
+		virtual void removeTexture(ITexture* texture) _IRR_OVERRIDE_;
+
+		//! Check if the driver supports creating textures with the given color format
+		virtual bool queryTextureFormat(ECOLOR_FORMAT format) const _IRR_OVERRIDE_;
 
 		//! Convert E_BLEND_FACTOR to OpenGL equivalent
 		GLenum getGLBlend(E_BLEND_FACTOR factor) const;
@@ -288,8 +291,8 @@ namespace video
 		//! Get ZBuffer bits.
 		GLenum getZBufferBits() const;
 
-		void getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
-			GLenum& pixelType, void(**converter)(const void*, s32, void*));
+		bool getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
+			GLenum& pixelType, void(**converter)(const void*, s32, void*)) const;
 
 		COGLES1CacheHandler* getCacheHandler() const;
 

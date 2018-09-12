@@ -71,14 +71,14 @@ namespace irr
 			UserData1 and UserData2 members of the SUserEvent.
 		Linux: send a ClientMessage via XSendEvent to the Irrlicht
 			Window; the data.l[0] and data.l[1] members will be
-			casted to s32 and used as UserData1 and UserData2.
+			cast to s32 and used as UserData1 and UserData2.
 		MacOS: Not yet implemented
 		*/
 		EET_USER_EVENT,
 
 		//! Pass on raw events from the OS
 		EET_SYSTEM_EVENT,
-		
+
 		//! Application state events like a resume, pause etc.
 		EET_APPLICATION_EVENT,
 
@@ -140,6 +140,14 @@ namespace irr
 		//! This event is generated after the third EMIE_MMOUSE_PRESSED_DOWN event.
 		EMIE_MMOUSE_TRIPLE_CLICK,
 
+		//! Mouse enters canvas used for rendering.
+		//! Only generated on emscripten
+		EMIE_MOUSE_ENTER_CANVAS,
+
+		//! Mouse leaves canvas used for rendering.
+		//! Only generated on emscripten
+		EMIE_MOUSE_LEAVE_CANVAS,
+
 		//! No real event. Just for convenience to get number of events
 		EMIE_COUNT
 	};
@@ -186,25 +194,25 @@ namespace irr
 		//! No real event, but to get number of event types
 		ESET_COUNT
 	};
-	
+
 	//! Enumeration for a commonly used application state events (it's useful mainly for mobile devices)
 	enum EAPPLICATION_EVENT_TYPE
 	{
 		//! The application will be resumed.
 		EAET_WILL_RESUME = 0,
-		
+
 		//! The application has been resumed.
 		EAET_DID_RESUME,
-		
+
 		//! The application will be paused.
 		EAET_WILL_PAUSE,
-		
+
 		//! The application has been paused.
 		EAET_DID_PAUSE,
 
 		//! The application will be terminated.
 		EAET_WILL_TERMINATE,
-		
+
 		//! The application received a memory warning.
 		EAET_MEMORY_WARNING,
 
@@ -239,7 +247,7 @@ namespace irr
 
 			//! An element would like to close.
 			/** Windows and context menus use this event when they would like to close,
-			this can be cancelled by absorbing the event. */
+			this can be canceled by absorbing the event. */
 			EGET_ELEMENT_CLOSED,
 
 			//! A button was clicked.
@@ -321,6 +329,11 @@ namespace irr
 			//! deprecated - use EGET_TREEVIEW_NODE_COLLAPSE instead. This
 			//! may be removed by Irrlicht 1.9
 			EGET_TREEVIEW_NODE_COLLAPS = EGET_TREEVIEW_NODE_COLLAPSE,
+
+			//! Information that an element got removed from the gui-graph.
+			/** NOTE: This event is not passed on to all element parents, but only the
+			gui environment (and user receiver). */
+			EGET_ELEMENT_REMOVED,
 
 			//! No real event. Just for convenience to get number of events
 			EGET_COUNT
@@ -536,10 +549,10 @@ struct SEvent
 	struct SUserEvent
 	{
 		//! Some user specified data as int
-		s32 UserData1;
+		size_t UserData1;
 
 		//! Another user specified data as int
-		s32 UserData2;
+		size_t UserData2;
 	};
 
 	// Raw events from the OS
@@ -560,7 +573,7 @@ struct SEvent
 			struct SAndroidCmd AndroidCmd;
 		};
 	};
-	
+
 	// Application state event
 	struct SApplicationEvent
 	{

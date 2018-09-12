@@ -35,8 +35,7 @@
 		#include <io.h> // for _access
 		#include <tchar.h>
 	#endif
-#else
-	#if (defined(_IRR_POSIX_API_) || defined(_IRR_OSX_PLATFORM_) || defined(_IRR_IOS_PLATFORM_) || defined(_IRR_ANDROID_PLATFORM_))
+#elif (defined(_IRR_POSIX_API_) || defined(_IRR_OSX_PLATFORM_) || defined(_IRR_IOS_PLATFORM_) || defined(_IRR_ANDROID_PLATFORM_))
 		#include <stdio.h>
 		#include <stdlib.h>
 		#include <string.h>
@@ -45,7 +44,8 @@
 		#include <dirent.h>
 		#include <sys/stat.h>
 		#include <unistd.h>
-	#endif
+#elif defined(_IRR_EMSCRIPTEN_PLATFORM_)
+    #include <unistd.h>
 #endif
 
 namespace irr
@@ -111,6 +111,9 @@ CFileSystem::~CFileSystem()
 //! opens a file for read access
 IReadFile* CFileSystem::createAndOpenFile(const io::path& filename)
 {
+	if ( filename.empty() )
+		return 0;
+
 	IReadFile* file = 0;
 	u32 i;
 
@@ -610,6 +613,8 @@ bool CFileSystem::changeWorkingDirectoryTo(const io::path& newDirectory)
 
 io::path CFileSystem::getAbsolutePath(const io::path& filename) const
 {
+	if ( filename.empty() )
+		return filename;
 #if defined(_IRR_WINDOWS_API_)
 	fschar_t *p=0;
 	fschar_t fpath[_MAX_PATH];
@@ -826,7 +831,7 @@ IFileList* CFileSystem::createFileList()
 	CFileList* r = 0;
 	io::path Path = getWorkingDirectory();
 	Path.replace('\\', '/');
-	if (Path.lastChar() != '/')
+	if (!Path.empty() && Path.lastChar() != '/')
 		Path.append('/');
 
 	//! Construct from native filesystem

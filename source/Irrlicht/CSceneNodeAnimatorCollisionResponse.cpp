@@ -68,7 +68,7 @@ void CSceneNodeAnimatorCollisionResponse::setEllipsoidRadius(
 }
 
 
-//! Returns the radius of the ellipsoid with wich the collision detection and
+//! Returns the radius of the ellipsoid with which the collision detection and
 //! response is done.
 core::vector3df CSceneNodeAnimatorCollisionResponse::getEllipsoidRadius() const
 {
@@ -202,7 +202,8 @@ void CSceneNodeAnimatorCollisionResponse::animateNode(ISceneNode* node, u32 time
 			}
 			else
 			{
-				Falling = false;
+				if ( CollisionOccurred )	// f can also happen to be false when FallingVelocity was already 0 (p.e. at top of a jump)
+					Falling = false;
 				FallingVelocity.set(0, 0, 0);
 			}
 		}

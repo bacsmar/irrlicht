@@ -496,6 +496,7 @@
 		<Unit filename="../../include/IMeshWriter.h" />
 		<Unit filename="../../include/IMetaTriangleSelector.h" />
 		<Unit filename="../../include/IOSOperator.h" />
+		<Unit filename="../../include/IOctreeSceneNode.h" />
 		<Unit filename="../../include/IParticleAffector.h" />
 		<Unit filename="../../include/IParticleAnimatedMeshSceneNodeEmitter.h" />
 		<Unit filename="../../include/IParticleAttractionAffector.h" />
@@ -557,6 +558,7 @@
 		<Unit filename="../../include/SMeshBuffer.h" />
 		<Unit filename="../../include/SMeshBufferLightMap.h" />
 		<Unit filename="../../include/SMeshBufferTangents.h" />
+		<Unit filename="../../include/SOverrideMaterial.h" />
 		<Unit filename="../../include/SParticle.h" />
 		<Unit filename="../../include/SSharedMeshBuffer.h" />
 		<Unit filename="../../include/SSkinMeshBuffer.h" />
@@ -823,6 +825,7 @@
 		<Unit filename="COBJMeshWriter.h" />
 		<Unit filename="COCTLoader.cpp" />
 		<Unit filename="COCTLoader.h" />
+		<Unit filename="COGLES2Common.h" />
 		<Unit filename="COGLES2Driver.cpp" />
 		<Unit filename="COGLES2Driver.h" />
 		<Unit filename="COGLES2ExtensionHandler.cpp" />
@@ -837,6 +840,8 @@
 		<Unit filename="COGLES2ParallaxMapRenderer.h" />
 		<Unit filename="COGLES2Renderer2D.cpp" />
 		<Unit filename="COGLES2Renderer2D.h" />
+		<Unit filename="COGLESCommon.h" />
+		<Unit filename="COGLESCoreExtensionHandler.h" />
 		<Unit filename="COGLESDriver.cpp" />
 		<Unit filename="COGLESDriver.h" />
 		<Unit filename="COGLESExtensionHandler.cpp" />
@@ -852,6 +857,11 @@
 		<Unit filename="COgreMeshFileLoader.h" />
 		<Unit filename="COpenGLCacheHandler.cpp" />
 		<Unit filename="COpenGLCacheHandler.h" />
+		<Unit filename="COpenGLCommon.h" />
+		<Unit filename="COpenGLCoreCacheHandler.h" />
+		<Unit filename="COpenGLCoreFeature.h" />
+		<Unit filename="COpenGLCoreRenderTarget.h" />
+		<Unit filename="COpenGLCoreTexture.h" />
 		<Unit filename="COpenGLDriver.cpp" />
 		<Unit filename="COpenGLDriver.h" />
 		<Unit filename="COpenGLExtensionHandler.cpp" />
@@ -1008,6 +1018,9 @@
 		<Unit filename="CWGLManager.h" />
 		<Unit filename="CWaterSurfaceSceneNode.cpp" />
 		<Unit filename="CWaterSurfaceSceneNode.h" />
+		<Unit filename="CWebGL1Driver.cpp" />
+		<Unit filename="CWebGL1Driver.h" />
+		<Unit filename="CWebGLExtensionHandler.h" />
 		<Unit filename="CWriteFile.cpp" />
 		<Unit filename="CWriteFile.h" />
 		<Unit filename="CXMLReader.cpp" />

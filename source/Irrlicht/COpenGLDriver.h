@@ -198,6 +198,9 @@ namespace video
 		//! Draws a single pixel
 		virtual void drawPixel(u32 x, u32 y, const SColor & color) _IRR_OVERRIDE_;
 
+		//! Draws a 3d box
+		virtual void draw3DBox( const core::aabbox3d<f32>& box, SColor color = SColor(255,255,255,255 ) ) _IRR_OVERRIDE_;
+
 		//! Draws a 3d line.
 		virtual void draw3DLine(const core::vector3df& start,
 					const core::vector3df& end,
@@ -342,9 +345,9 @@ namespace video
 		//! Returns an image created from the last rendered frame.
 		virtual IImage* createScreenShot(video::ECOLOR_FORMAT format=video::ECF_UNKNOWN, video::E_RENDER_TARGET target=video::ERT_FRAME_BUFFER) _IRR_OVERRIDE_;
 
-		//! checks if an OpenGL error has happend and prints it
+		//! checks if an OpenGL error has happened and prints it (+ some internal code which is usually the line number)
 		//! for performance reasons only available in debug mode
-		bool testGLError();
+		bool testGLError(int code=0);
 
 		//! Set/unset a clipping plane.
 		//! There are at least 6 clipping planes available for the user to set at will.
@@ -369,7 +372,10 @@ namespace video
 		virtual core::dimension2du getMaxTextureSize() const _IRR_OVERRIDE_;
 
 		//! Removes a texture from the texture cache and deletes it, freeing lot of memory.
-		void removeTexture(ITexture* texture) _IRR_OVERRIDE_;
+		virtual void removeTexture(ITexture* texture) _IRR_OVERRIDE_;
+
+		//! Check if the driver supports creating textures with the given color format
+		virtual bool queryTextureFormat(ECOLOR_FORMAT format) const _IRR_OVERRIDE_;
 
 		//! Convert E_PRIMITIVE_TYPE to OpenGL equivalent
 		GLenum primitiveTypeToGL(scene::E_PRIMITIVE_TYPE type) const;
@@ -380,8 +386,8 @@ namespace video
 		//! Get ZBuffer bits.
 		GLenum getZBufferBits() const;
 
-		void getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
-			GLenum& pixelType, void(**converter)(const void*, s32, void*));
+		bool getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
+			GLenum& pixelType, void(**converter)(const void*, s32, void*)) const;
 
 		//! Return info about fixed pipeline state.
 		E_OPENGL_FIXED_PIPELINE_STATE getFixedPipelineState() const;

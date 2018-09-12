@@ -44,10 +44,13 @@ namespace video
 	class COGLES2Driver : public CNullDriver, public IMaterialRendererServices, public COGLES2ExtensionHandler
 	{
 		friend class COpenGLCoreTexture<COGLES2Driver>;
+		friend IVideoDriver* createOGLES2Driver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager);
+
+	protected:
+		//! constructor (use createOGLES2Driver instead)
+		COGLES2Driver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager);
 
 	public:
-		//! constructor
-		COGLES2Driver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager);
 
 		//! destructor
 		virtual ~COGLES2Driver();
@@ -114,6 +117,7 @@ namespace video
 			const core::rect<s32>& sourceRect, const core::rect<s32>* clipRect = 0,
 			const video::SColor* const colors = 0, bool useAlphaChannelOfTexture = false) _IRR_OVERRIDE_;
 
+		// internally used
 		virtual void draw2DImage(const video::ITexture* texture, u32 layer, bool flip);
 
 		//! draws a set of 2d images
@@ -275,8 +279,8 @@ namespace video
 		//! Returns an image created from the last rendered frame.
 		virtual IImage* createScreenShot(video::ECOLOR_FORMAT format=video::ECF_UNKNOWN, video::E_RENDER_TARGET target=video::ERT_FRAME_BUFFER) _IRR_OVERRIDE_;
 
-		//! checks if an OpenGL error has happened and prints it
-		bool testGLError();
+		//! checks if an OpenGL error has happened and prints it (+ some internal code which is usually the line number)
+		bool testGLError(int code=0);
 
 		//! checks if an OGLES1 error has happened and prints it
 		bool testEGLError();
@@ -299,25 +303,30 @@ namespace video
 			return VendorName;
 		};
 
-		void removeTexture(ITexture* texture) _IRR_OVERRIDE_;
+		virtual void removeTexture(ITexture* texture) _IRR_OVERRIDE_;
+
+		//! Check if the driver supports creating textures with the given color format
+		virtual bool queryTextureFormat(ECOLOR_FORMAT format) const _IRR_OVERRIDE_;
 
 		//! Convert E_BLEND_FACTOR to OpenGL equivalent
 		GLenum getGLBlend(E_BLEND_FACTOR factor) const;
 
 		//! Get ZBuffer bits.
-		GLenum getZBufferBits() const;
+		virtual GLenum getZBufferBits() const;
 
-		void getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
-			GLenum& pixelType, void(**converter)(const void*, s32, void*));
+		virtual bool getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
+			GLenum& pixelType, void(**converter)(const void*, s32, void*)) const;
 
 		//! Get current material.
 		const SMaterial& getCurrentMaterial() const;
 
 		COGLES2CacheHandler* getCacheHandler() const;
 
-	private:
+	protected:
 		//! inits the opengl-es driver
-		bool genericDriverInit(const core::dimension2d<u32>& screenSize, bool stencilBuffer);
+		virtual bool genericDriverInit(const core::dimension2d<u32>& screenSize, bool stencilBuffer);
+
+		void chooseMaterial2D();
 
 		virtual ITexture* createDeviceDependentTexture(const io::path& name, IImage* image) _IRR_OVERRIDE_;
 
@@ -332,16 +341,58 @@ namespace video
 		//! sets the needed renderstates
 		void setRenderStates2DMode(bool alpha, bool texture, bool alphaChannel);
 
-		void chooseMaterial2D();
+		//! Prevent setRenderStateMode calls to do anything.
+		// hack to allow drawing meshbuffers in 2D mode.
+		// Better solution would be passing this flag through meshbuffers,
+		// but the way this is currently implemented in Irrlicht makes this tricky to implement
+		void lockRenderStateMode()
+		{
+			LockRenderStateMode = true;
+		}
+
+		//! Allow setRenderStateMode calls to work again
+		void unlockRenderStateMode()
+		{
+			LockRenderStateMode = false;
+		}
+
+		void draw2D3DVertexPrimitiveList(const void* vertices,
+				u32 vertexCount, const void* indexList, u32 primitiveCount,
+				E_VERTEX_TYPE vType, scene::E_PRIMITIVE_TYPE pType,
+				E_INDEX_TYPE iType, bool is3D);
 
 		void createMaterialRenderers();
 
 		void loadShaderData(const io::path& vertexShaderName, const io::path& fragmentShaderName, c8** vertexShaderData, c8** fragmentShaderData);
 
-		COGLES2CacheHandler* CacheHandler;
-		COGLES2Renderer2D* MaterialRenderer2D;
+		bool setMaterialTexture(irr::u32 layerIdx, const irr::video::ITexture* texture);
 
+		COGLES2CacheHandler* CacheHandler;
 		core::stringw Name;
+		core::stringc VendorName;
+		SIrrlichtCreationParameters Params;
+
+		//! bool to make all renderstates reset if set to true.
+		bool ResetRenderStates;
+		bool LockRenderStateMode;
+		u8 AntiAlias;
+
+		struct SUserClipPlane
+		{
+			core::plane3df Plane;
+			bool Enabled;
+		};
+
+		core::array<SUserClipPlane> UserClipPlane;
+
+		core::matrix4 TextureFlipMatrix;
+
+private:
+
+		COGLES2Renderer2D* MaterialRenderer2DActive;
+		COGLES2Renderer2D* MaterialRenderer2DTexture;
+		COGLES2Renderer2D* MaterialRenderer2DNoTexture;
+
 		core::matrix4 Matrices[ETS_COUNT];
 
 		//! enumeration for rendering modes such as 2d and 3d for minimizing the switching of renderStates.
@@ -353,30 +404,13 @@ namespace video
 		};
 
 		E_RENDER_MODE CurrentRenderMode;
-		//! bool to make all renderstates reset if set to true.
-		bool ResetRenderStates;
 		bool Transformation3DChanged;
-		u8 AntiAlias;
 		irr::io::path OGLES2ShaderPath;
 
 		SMaterial Material, LastMaterial;
 
-		struct SUserClipPlane
-		{
-			core::plane3df Plane;
-			bool Enabled;
-		};
-
-		core::array<SUserClipPlane> UserClipPlane;
-
-		core::stringc VendorName;
-
-		core::matrix4 TextureFlipMatrix;
-
 		//! Color buffer format
 		ECOLOR_FORMAT ColorFormat;
-
-		SIrrlichtCreationParameters Params;
 
 		//! All the lights that have been requested; a hardware limited
 		//! number of them will be used at once.
@@ -397,6 +431,6 @@ namespace video
 } // end namespace video
 } // end namespace irr
 
-#endif // _IRR_COMPILE_WITH_OPENGL_
+#endif // _IRR_COMPILE_WITH_OGLES2_
 
-#endif
+#endif // __C_OGLES2_DRIVER_H_INCLUDED__

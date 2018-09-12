@@ -56,7 +56,7 @@ COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFil
 	: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(), CacheHandler(0),
 	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
 	AntiAlias(params.AntiAlias), ColorFormat(ECF_R8G8B8), FixedPipelineState(EOFPS_ENABLE),
-	Params(params), SDLDevice(device), DeviceType(EIDT_SDL)
+	Params(params), SDLDevice(device), ContextManager(0), DeviceType(EIDT_SDL)
 {
 #ifdef _DEBUG
 	setDebugName("COpenGLDriver");
@@ -291,7 +291,8 @@ bool COpenGLDriver::beginScene(u16 clearFlag, SColor clearColor, f32 clearDepth,
 		ContextManager->activateContext(videoData);
 
 #if defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
-	glFrontFace(GL_CW);
+	if ( DeviceType == EIDT_SDL )
+		glFrontFace(GL_CW);
 #endif
 
 	clearBuffers(clearFlag, clearColor, clearDepth, clearStencil);
@@ -311,8 +312,11 @@ bool COpenGLDriver::endScene()
 		status = ContextManager->swapBuffers();
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-	SDL_GL_SwapBuffers();
-	status = true;
+	if ( DeviceType == EIDT_SDL )
+	{
+		SDL_GL_SwapBuffers();
+		status = true;
+	}
 #endif
 
 	// todo: console device present
@@ -463,7 +467,7 @@ bool COpenGLDriver::updateVertexHardwareBuffer(SHWBufferLink_opengl *HWBuffer)
 
 	extGlBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	return (!testGLError());
+	return (!testGLError(__LINE__));
 #else
 	return false;
 #endif
@@ -537,7 +541,7 @@ bool COpenGLDriver::updateIndexHardwareBuffer(SHWBufferLink_opengl *HWBuffer)
 
 	extGlBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	return (!testGLError());
+	return (!testGLError(__LINE__));
 #else
 	return false;
 #endif
@@ -666,7 +670,7 @@ void COpenGLDriver::drawHardwareBuffer(SHWBufferLink *_HWBuffer)
 		indexList=0;
 	}
 
-	drawVertexPrimitiveList(vertices, mb->getVertexCount(), indexList, mb->getIndexCount()/3, mb->getVertexType(), scene::EPT_TRIANGLES, mb->getIndexType());
+	drawVertexPrimitiveList(vertices, mb->getVertexCount(), indexList, mb->getPrimitiveCount(), mb->getVertexType(), mb->getPrimitiveType(), mb->getIndexType());
 
 	if (HWBuffer->Mapped_Vertex!=scene::EHM_NEVER)
 		extGlBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -731,10 +735,7 @@ void COpenGLDriver::runOcclusionQuery(scene::ISceneNode* node, bool visible)
 #else
 				0);
 #endif
-		if ( testGLError() )
-		{
-			os::Printer::log("Occlusion Query failed", ELL_ERROR);
-		}
+		testGLError(__LINE__);
 	}
 }
 
@@ -762,10 +763,7 @@ void COpenGLDriver::updateOcclusionQuery(scene::ISceneNode* node, bool block)
 						0,
 #endif
 						&available);
-			if ( testGLError() )
-			{
-				os::Printer::log("extGlGetQueryObjectiv failed", ELL_ERROR);
-			}
+			testGLError(__LINE__);
 		}
 		if (available==GL_TRUE)
 		{
@@ -781,10 +779,7 @@ void COpenGLDriver::updateOcclusionQuery(scene::ISceneNode* node, bool block)
 			if (queryFeature(EVDF_OCCLUSION_QUERY))
 				OcclusionQueries[index].Result = available;
 		}
-		if ( testGLError() )
-		{
-			os::Printer::log("extGlGetQueryObjectiv failed", ELL_ERROR);
-		}
+		testGLError(__LINE__);
 	}
 }
 
@@ -1087,14 +1082,19 @@ void COpenGLDriver::renderArray(const void* indexList, u32 primitiveCount,
 			glPointSize(particleSize);
 
 #ifdef GL_ARB_point_sprite
-			if (pType==scene::EPT_POINT_SPRITES && FeatureAvailable[IRR_ARB_point_sprite])
-				glTexEnvf(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE, GL_TRUE);
+			if (pType == scene::EPT_POINT_SPRITES && FeatureAvailable[IRR_ARB_point_sprite])
+			{
+				CacheHandler->setActiveTexture(GL_TEXTURE0_ARB);
+				glTexEnvf(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE, GL_TRUE);
+			}
 #endif
 			glDrawArrays(GL_POINTS, 0, primitiveCount);
 #ifdef GL_ARB_point_sprite
 			if (pType==scene::EPT_POINT_SPRITES && FeatureAvailable[IRR_ARB_point_sprite])
 			{
 				glDisable(GL_POINT_SPRITE_ARB);
+
+				CacheHandler->setActiveTexture(GL_TEXTURE0_ARB);
 				glTexEnvf(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE, GL_FALSE);
 			}
 #endif
@@ -1286,87 +1286,24 @@ void COpenGLDriver::draw2DImage(const video::ITexture* texture, const core::posi
 	if (!sourceRect.isValid())
 		return;
 
-	core::position2d<s32> targetPos(destPos);
-	core::position2d<s32> sourcePos(sourceRect.UpperLeftCorner);
-	// This needs to be signed as it may go negative.
-	core::dimension2d<s32> sourceSize(sourceRect.getSize());
+	// clip these coordinates
+	core::rect<s32> targetRect(destPos, sourceRect.getSize());
 	if (clipRect)
 	{
-		if (targetPos.X < clipRect->UpperLeftCorner.X)
-		{
-			sourceSize.Width += targetPos.X - clipRect->UpperLeftCorner.X;
-			if (sourceSize.Width <= 0)
-				return;
-
-			sourcePos.X -= targetPos.X - clipRect->UpperLeftCorner.X;
-			targetPos.X = clipRect->UpperLeftCorner.X;
-		}
-
-		if (targetPos.X + sourceSize.Width > clipRect->LowerRightCorner.X)
-		{
-			sourceSize.Width -= (targetPos.X + sourceSize.Width) - clipRect->LowerRightCorner.X;
-			if (sourceSize.Width <= 0)
-				return;
-		}
-
-		if (targetPos.Y < clipRect->UpperLeftCorner.Y)
-		{
-			sourceSize.Height += targetPos.Y - clipRect->UpperLeftCorner.Y;
-			if (sourceSize.Height <= 0)
-				return;
-
-			sourcePos.Y -= targetPos.Y - clipRect->UpperLeftCorner.Y;
-			targetPos.Y = clipRect->UpperLeftCorner.Y;
-		}
-
-		if (targetPos.Y + sourceSize.Height > clipRect->LowerRightCorner.Y)
-		{
-			sourceSize.Height -= (targetPos.Y + sourceSize.Height) - clipRect->LowerRightCorner.Y;
-			if (sourceSize.Height <= 0)
-				return;
-		}
-	}
-
-	// clip these coordinates
-
-	if (targetPos.X<0)
-	{
-		sourceSize.Width += targetPos.X;
-		if (sourceSize.Width <= 0)
+		targetRect.clipAgainst(*clipRect);
+		if ( targetRect.getWidth() < 0 || targetRect.getHeight() < 0 )
 			return;
-
-		sourcePos.X -= targetPos.X;
-		targetPos.X = 0;
 	}
 
 	const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
-
-	if (targetPos.X + sourceSize.Width > (s32)renderTargetSize.Width)
-	{
-		sourceSize.Width -= (targetPos.X + sourceSize.Width) - renderTargetSize.Width;
-		if (sourceSize.Width <= 0)
+	targetRect.clipAgainst( core::rect<s32>(0,0, (s32)renderTargetSize.Width, (s32)renderTargetSize.Height) );
+	if ( targetRect.getWidth() < 0 || targetRect.getHeight() < 0 )
 			return;
-	}
-
-	if (targetPos.Y<0)
-	{
-		sourceSize.Height += targetPos.Y;
-		if (sourceSize.Height <= 0)
-			return;
-
-		sourcePos.Y -= targetPos.Y;
-		targetPos.Y = 0;
-	}
-
-	if (targetPos.Y + sourceSize.Height >(s32)renderTargetSize.Height)
-	{
-		sourceSize.Height -= (targetPos.Y + sourceSize.Height) - renderTargetSize.Height;
-		if (sourceSize.Height <= 0)
-			return;
-	}
 
 	// ok, we've clipped everything.
 	// now draw it.
+	const core::dimension2d<s32> sourceSize(targetRect.getSize());
+	const core::position2d<s32> sourcePos(sourceRect.UpperLeftCorner + (targetRect.UpperLeftCorner-destPos));
 
 	const core::dimension2d<u32>& ss = texture->getOriginalSize();
 	const f32 invW = 1.f / static_cast<f32>(ss.Width);
@@ -1376,8 +1313,6 @@ void COpenGLDriver::draw2DImage(const video::ITexture* texture, const core::posi
 		sourcePos.Y * invH,
 		(sourcePos.X + sourceSize.Width) * invW,
 		(sourcePos.Y + sourceSize.Height) * invH);
-
-	const core::rect<s32> poss(targetPos, sourceSize);
 
 	disableTextures(1);
 	if (!CacheHandler->getTextureCache().set(0, texture))
@@ -1389,10 +1324,10 @@ void COpenGLDriver::draw2DImage(const video::ITexture* texture, const core::posi
 	Quad2DVertices[2].Color = color;
 	Quad2DVertices[3].Color = color;
 
-	Quad2DVertices[0].Pos = core::vector3df((f32)poss.UpperLeftCorner.X, (f32)poss.UpperLeftCorner.Y, 0.0f);
-	Quad2DVertices[1].Pos = core::vector3df((f32)poss.LowerRightCorner.X, (f32)poss.UpperLeftCorner.Y, 0.0f);
-	Quad2DVertices[2].Pos = core::vector3df((f32)poss.LowerRightCorner.X, (f32)poss.LowerRightCorner.Y, 0.0f);
-	Quad2DVertices[3].Pos = core::vector3df((f32)poss.UpperLeftCorner.X, (f32)poss.LowerRightCorner.Y, 0.0f);
+	Quad2DVertices[0].Pos = core::vector3df((f32)targetRect.UpperLeftCorner.X, (f32)targetRect.UpperLeftCorner.Y, 0.0f);
+	Quad2DVertices[1].Pos = core::vector3df((f32)targetRect.LowerRightCorner.X, (f32)targetRect.UpperLeftCorner.Y, 0.0f);
+	Quad2DVertices[2].Pos = core::vector3df((f32)targetRect.LowerRightCorner.X, (f32)targetRect.LowerRightCorner.Y, 0.0f);
+	Quad2DVertices[3].Pos = core::vector3df((f32)targetRect.UpperLeftCorner.X, (f32)targetRect.LowerRightCorner.Y, 0.0f);
 
 	Quad2DVertices[0].TCoords = core::vector2df(tcoords.UpperLeftCorner.X, tcoords.UpperLeftCorner.Y);
 	Quad2DVertices[1].TCoords = core::vector2df(tcoords.LowerRightCorner.X, tcoords.UpperLeftCorner.Y);
@@ -1952,6 +1887,8 @@ void COpenGLDriver::draw2DRectangle(const core::rect<s32>& position,
 void COpenGLDriver::draw2DLine(const core::position2d<s32>& start,
 				const core::position2d<s32>& end, SColor color)
 {
+	// TODO: It's not pixel-exact. Reason is the way OpenGL handles line-drawing (search the web for "diamond exit rule").
+
 	if (start==end)
 		drawPixel(start.X, start.Y, color);
 	else
@@ -2098,13 +2035,11 @@ void COpenGLDriver::setMaterial(const SMaterial& material)
 		CacheHandler->getTextureCache().set(i, material.getTexture(i));
 		setTransform((E_TRANSFORMATION_STATE)(ETS_TEXTURE_0 + i), material.getTextureMatrix(i));
 	}
-
-	CacheHandler->setActiveTexture(GL_TEXTURE0_ARB);
 }
 
 
 //! prints error if an error happened.
-bool COpenGLDriver::testGLError()
+bool COpenGLDriver::testGLError(int code)
 {
 #ifdef _DEBUG
 	GLenum g = glGetError();
@@ -2113,22 +2048,22 @@ bool COpenGLDriver::testGLError()
 	case GL_NO_ERROR:
 		return false;
 	case GL_INVALID_ENUM:
-		os::Printer::log("GL_INVALID_ENUM", ELL_ERROR); break;
+		os::Printer::log("GL_INVALID_ENUM", core::stringc(code).c_str(), ELL_ERROR); break;
 	case GL_INVALID_VALUE:
-		os::Printer::log("GL_INVALID_VALUE", ELL_ERROR); break;
+		os::Printer::log("GL_INVALID_VALUE", core::stringc(code).c_str(), ELL_ERROR); break;
 	case GL_INVALID_OPERATION:
-		os::Printer::log("GL_INVALID_OPERATION", ELL_ERROR); break;
+		os::Printer::log("GL_INVALID_OPERATION", core::stringc(code).c_str(), ELL_ERROR); break;
 	case GL_STACK_OVERFLOW:
-		os::Printer::log("GL_STACK_OVERFLOW", ELL_ERROR); break;
+		os::Printer::log("GL_STACK_OVERFLOW", core::stringc(code).c_str(), ELL_ERROR); break;
 	case GL_STACK_UNDERFLOW:
-		os::Printer::log("GL_STACK_UNDERFLOW", ELL_ERROR); break;
+		os::Printer::log("GL_STACK_UNDERFLOW", core::stringc(code).c_str(), ELL_ERROR); break;
 	case GL_OUT_OF_MEMORY:
-		os::Printer::log("GL_OUT_OF_MEMORY", ELL_ERROR); break;
+		os::Printer::log("GL_OUT_OF_MEMORY", core::stringc(code).c_str(), ELL_ERROR); break;
 	case GL_TABLE_TOO_LARGE:
-		os::Printer::log("GL_TABLE_TOO_LARGE", ELL_ERROR); break;
+		os::Printer::log("GL_TABLE_TOO_LARGE", core::stringc(code).c_str(), ELL_ERROR); break;
 #if defined(GL_EXT_framebuffer_object)
 	case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
-		os::Printer::log("GL_INVALID_FRAMEBUFFER_OPERATION", ELL_ERROR); break;
+		os::Printer::log("GL_INVALID_FRAMEBUFFER_OPERATION", core::stringc(code).c_str(), ELL_ERROR); break;
 #endif
 	};
 //	_IRR_DEBUG_BREAK_IF(true);
@@ -2148,6 +2083,8 @@ void COpenGLDriver::setRenderStates3DMode()
 		CacheHandler->setBlend(false);
 		CacheHandler->setAlphaTest(false);
 		CacheHandler->setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		CacheHandler->setActiveTexture(GL_TEXTURE0_ARB);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 		// switch back the matrices
 		CacheHandler->setMatrixMode(GL_MODELVIEW);
@@ -2531,11 +2468,7 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
 	}
 
 	// Color Mask
-	CacheHandler->setColorMask(
-		(material.ColorMask & ECP_RED)?GL_TRUE:GL_FALSE,
-		(material.ColorMask & ECP_GREEN)?GL_TRUE:GL_FALSE,
-		(material.ColorMask & ECP_BLUE)?GL_TRUE:GL_FALSE,
-		(material.ColorMask & ECP_ALPHA)?GL_TRUE:GL_FALSE);
+	CacheHandler->setColorMask(material.ColorMask);
 
 	// Blend Equation
     if (material.BlendOperation == EBO_NONE)
@@ -2747,7 +2680,7 @@ void COpenGLDriver::setTextureRenderStates(const SMaterial& material, bool reset
 {
 	// Set textures to TU/TIU and apply filters to them
 
-	for (s32 i = Feature.TextureUnit - 1; i>= 0; --i)
+	for (s32 i = Feature.TextureUnit - 1; i >= 0; --i)
 	{
 		bool fixedPipeline = false;
 
@@ -2756,149 +2689,146 @@ void COpenGLDriver::setTextureRenderStates(const SMaterial& material, bool reset
 
 		const COpenGLTexture* tmpTexture = CacheHandler->getTextureCache().get(i);
 
-		if (!tmpTexture)
-			continue;
-
-		CacheHandler->setActiveTexture(GL_TEXTURE0 + i);
-
-		if (fixedPipeline)
+		if (tmpTexture)
 		{
-			const bool isRTT = tmpTexture->isRenderTarget();
+			CacheHandler->setActiveTexture(GL_TEXTURE0 + i);
 
-			CacheHandler->setMatrixMode(GL_TEXTURE);
-
-			if (!isRTT && Matrices[ETS_TEXTURE_0 + i].isIdentity())
-				glLoadIdentity();
-			else
+			if (fixedPipeline)
 			{
-				GLfloat glmat[16];
-				if (isRTT)
-					getGLTextureMatrix(glmat, Matrices[ETS_TEXTURE_0 + i] * TextureFlipMatrix);
+				const bool isRTT = tmpTexture->isRenderTarget();
+
+				CacheHandler->setMatrixMode(GL_TEXTURE);
+
+				if (!isRTT && Matrices[ETS_TEXTURE_0 + i].isIdentity())
+					glLoadIdentity();
 				else
-					getGLTextureMatrix(glmat, Matrices[ETS_TEXTURE_0 + i]);
-				glLoadMatrixf(glmat);
+				{
+					GLfloat glmat[16];
+					if (isRTT)
+						getGLTextureMatrix(glmat, Matrices[ETS_TEXTURE_0 + i] * TextureFlipMatrix);
+					else
+						getGLTextureMatrix(glmat, Matrices[ETS_TEXTURE_0 + i]);
+					glLoadMatrixf(glmat);
+				}
 			}
-		}
 
-		const GLenum tmpType = tmpTexture->getOpenGLTextureType();
+			const GLenum tmpType = tmpTexture->getOpenGLTextureType();
 
-		COpenGLTexture::SStatesCache& statesCache = tmpTexture->getStatesCache();
+			COpenGLTexture::SStatesCache& statesCache = tmpTexture->getStatesCache();
 
-		if (resetAllRenderstates)
-			statesCache.IsCached = false;
+			if (resetAllRenderstates)
+				statesCache.IsCached = false;
 
 #ifdef GL_VERSION_2_1
-		if (Version>=210)
-		{
-			if (!statesCache.IsCached || material.TextureLayer[i].LODBias != statesCache.LODBias)
+			if (Version >= 210)
+			{
+				if (!statesCache.IsCached || material.TextureLayer[i].LODBias != statesCache.LODBias)
+				{
+					if (material.TextureLayer[i].LODBias)
+					{
+						const float tmp = core::clamp(material.TextureLayer[i].LODBias * 0.125f, -MaxTextureLODBias, MaxTextureLODBias);
+						glTexParameterf(tmpType, GL_TEXTURE_LOD_BIAS, tmp);
+					}
+					else
+						glTexParameterf(tmpType, GL_TEXTURE_LOD_BIAS, 0.f);
+
+					statesCache.LODBias = material.TextureLayer[i].LODBias;
+				}
+			}
+			else if (FeatureAvailable[IRR_EXT_texture_lod_bias])
 			{
 				if (material.TextureLayer[i].LODBias)
 				{
 					const float tmp = core::clamp(material.TextureLayer[i].LODBias * 0.125f, -MaxTextureLODBias, MaxTextureLODBias);
-					glTexParameterf(tmpType, GL_TEXTURE_LOD_BIAS, tmp);
+					glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, tmp);
 				}
 				else
-					glTexParameterf(tmpType, GL_TEXTURE_LOD_BIAS, 0.f);
-
-				statesCache.LODBias = material.TextureLayer[i].LODBias;
+					glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0.f);
 			}
-		}
-		else if (FeatureAvailable[IRR_EXT_texture_lod_bias])
-		{
-			if (material.TextureLayer[i].LODBias)
-			{
-				const float tmp = core::clamp(material.TextureLayer[i].LODBias * 0.125f, -MaxTextureLODBias, MaxTextureLODBias);
-				glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, tmp);
-			}
-			else
-				glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0.f);
-		}
 #elif defined(GL_EXT_texture_lod_bias)
-		if (FeatureAvailable[IRR_EXT_texture_lod_bias])
-		{
-			if (material.TextureLayer[i].LODBias)
+			if (FeatureAvailable[IRR_EXT_texture_lod_bias])
 			{
-				const float tmp = core::clamp(material.TextureLayer[i].LODBias * 0.125f, -MaxTextureLODBias, MaxTextureLODBias);
-				glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, tmp);
+				if (material.TextureLayer[i].LODBias)
+				{
+					const float tmp = core::clamp(material.TextureLayer[i].LODBias * 0.125f, -MaxTextureLODBias, MaxTextureLODBias);
+					glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, tmp);
+				}
+				else
+					glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0.f);
 			}
-			else
-				glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0.f);
-		}
 #endif
 
-		if (!statesCache.IsCached || material.TextureLayer[i].BilinearFilter != statesCache.BilinearFilter ||
-			material.TextureLayer[i].TrilinearFilter != statesCache.TrilinearFilter)
-		{
-			glTexParameteri(tmpType, GL_TEXTURE_MAG_FILTER,
-				(material.TextureLayer[i].BilinearFilter || material.TextureLayer[i].TrilinearFilter) ? GL_LINEAR : GL_NEAREST);
-
-			statesCache.BilinearFilter = material.TextureLayer[i].BilinearFilter;
-			statesCache.TrilinearFilter = material.TextureLayer[i].TrilinearFilter;
-		}
-
-		if (material.UseMipMaps && tmpTexture->hasMipMaps())
-		{
 			if (!statesCache.IsCached || material.TextureLayer[i].BilinearFilter != statesCache.BilinearFilter ||
-				material.TextureLayer[i].TrilinearFilter != statesCache.TrilinearFilter || !statesCache.MipMapStatus)
+				material.TextureLayer[i].TrilinearFilter != statesCache.TrilinearFilter)
 			{
-				glTexParameteri(tmpType, GL_TEXTURE_MIN_FILTER,
-					material.TextureLayer[i].TrilinearFilter ? GL_LINEAR_MIPMAP_LINEAR :
-					material.TextureLayer[i].BilinearFilter ? GL_LINEAR_MIPMAP_NEAREST :
-					GL_NEAREST_MIPMAP_NEAREST);
-
-				statesCache.BilinearFilter = material.TextureLayer[i].BilinearFilter;
-				statesCache.TrilinearFilter = material.TextureLayer[i].TrilinearFilter;
-				statesCache.MipMapStatus = true;
-			}
-		}
-		else
-		{
-			if (!statesCache.IsCached || material.TextureLayer[i].BilinearFilter != statesCache.BilinearFilter ||
-				material.TextureLayer[i].TrilinearFilter != statesCache.TrilinearFilter || statesCache.MipMapStatus)
-			{
-				glTexParameteri(tmpType, GL_TEXTURE_MIN_FILTER,
+				glTexParameteri(tmpType, GL_TEXTURE_MAG_FILTER,
 					(material.TextureLayer[i].BilinearFilter || material.TextureLayer[i].TrilinearFilter) ? GL_LINEAR : GL_NEAREST);
 
 				statesCache.BilinearFilter = material.TextureLayer[i].BilinearFilter;
 				statesCache.TrilinearFilter = material.TextureLayer[i].TrilinearFilter;
-				statesCache.MipMapStatus = false;
 			}
-		}
+
+			if (material.UseMipMaps && tmpTexture->hasMipMaps())
+			{
+				if (!statesCache.IsCached || material.TextureLayer[i].BilinearFilter != statesCache.BilinearFilter ||
+					material.TextureLayer[i].TrilinearFilter != statesCache.TrilinearFilter || !statesCache.MipMapStatus)
+				{
+					glTexParameteri(tmpType, GL_TEXTURE_MIN_FILTER,
+						material.TextureLayer[i].TrilinearFilter ? GL_LINEAR_MIPMAP_LINEAR :
+						material.TextureLayer[i].BilinearFilter ? GL_LINEAR_MIPMAP_NEAREST :
+						GL_NEAREST_MIPMAP_NEAREST);
+
+					statesCache.BilinearFilter = material.TextureLayer[i].BilinearFilter;
+					statesCache.TrilinearFilter = material.TextureLayer[i].TrilinearFilter;
+					statesCache.MipMapStatus = true;
+				}
+			}
+			else
+			{
+				if (!statesCache.IsCached || material.TextureLayer[i].BilinearFilter != statesCache.BilinearFilter ||
+					material.TextureLayer[i].TrilinearFilter != statesCache.TrilinearFilter || statesCache.MipMapStatus)
+				{
+					glTexParameteri(tmpType, GL_TEXTURE_MIN_FILTER,
+						(material.TextureLayer[i].BilinearFilter || material.TextureLayer[i].TrilinearFilter) ? GL_LINEAR : GL_NEAREST);
+
+					statesCache.BilinearFilter = material.TextureLayer[i].BilinearFilter;
+					statesCache.TrilinearFilter = material.TextureLayer[i].TrilinearFilter;
+					statesCache.MipMapStatus = false;
+				}
+			}
 
 #ifdef GL_EXT_texture_filter_anisotropic
-		if (FeatureAvailable[IRR_EXT_texture_filter_anisotropic] &&
-			(!statesCache.IsCached || material.TextureLayer[i].AnisotropicFilter != statesCache.AnisotropicFilter))
-		{
-			glTexParameteri(tmpType, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-				material.TextureLayer[i].AnisotropicFilter>1 ? core::min_(MaxAnisotropy, material.TextureLayer[i].AnisotropicFilter) : 1);
+			if (FeatureAvailable[IRR_EXT_texture_filter_anisotropic] &&
+				(!statesCache.IsCached || material.TextureLayer[i].AnisotropicFilter != statesCache.AnisotropicFilter))
+			{
+				glTexParameteri(tmpType, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+					material.TextureLayer[i].AnisotropicFilter > 1 ? core::min_(MaxAnisotropy, material.TextureLayer[i].AnisotropicFilter) : 1);
 
-			statesCache.AnisotropicFilter = material.TextureLayer[i].AnisotropicFilter;
-		}
+				statesCache.AnisotropicFilter = material.TextureLayer[i].AnisotropicFilter;
+			}
 #endif
 
-		if (!statesCache.IsCached || material.TextureLayer[i].TextureWrapU != statesCache.WrapU)
-		{
-			glTexParameteri(tmpType, GL_TEXTURE_WRAP_S, getTextureWrapMode(material.TextureLayer[i].TextureWrapU));
-			statesCache.WrapU = material.TextureLayer[i].TextureWrapU;
-		}
+			if (!statesCache.IsCached || material.TextureLayer[i].TextureWrapU != statesCache.WrapU)
+			{
+				glTexParameteri(tmpType, GL_TEXTURE_WRAP_S, getTextureWrapMode(material.TextureLayer[i].TextureWrapU));
+				statesCache.WrapU = material.TextureLayer[i].TextureWrapU;
+			}
 
-		if (!statesCache.IsCached || material.TextureLayer[i].TextureWrapV != statesCache.WrapV)
-		{
-			glTexParameteri(tmpType, GL_TEXTURE_WRAP_T, getTextureWrapMode(material.TextureLayer[i].TextureWrapV));
-			statesCache.WrapV = material.TextureLayer[i].TextureWrapV;
-		}
+			if (!statesCache.IsCached || material.TextureLayer[i].TextureWrapV != statesCache.WrapV)
+			{
+				glTexParameteri(tmpType, GL_TEXTURE_WRAP_T, getTextureWrapMode(material.TextureLayer[i].TextureWrapV));
+				statesCache.WrapV = material.TextureLayer[i].TextureWrapV;
+			}
 
-		if (!statesCache.IsCached || material.TextureLayer[i].TextureWrapW != statesCache.WrapW)
-		{
-			glTexParameteri(tmpType, GL_TEXTURE_WRAP_R, getTextureWrapMode(material.TextureLayer[i].TextureWrapW));
-			statesCache.WrapW = material.TextureLayer[i].TextureWrapW;
-		}
+			if (!statesCache.IsCached || material.TextureLayer[i].TextureWrapW != statesCache.WrapW)
+			{
+				glTexParameteri(tmpType, GL_TEXTURE_WRAP_R, getTextureWrapMode(material.TextureLayer[i].TextureWrapW));
+				statesCache.WrapW = material.TextureLayer[i].TextureWrapW;
+			}
 
-		statesCache.IsCached = true;
+			statesCache.IsCached = true;
+		}
 	}
-
-	// be sure to leave in texture stage 0
-	CacheHandler->setActiveTexture(GL_TEXTURE0);
 }
 
 
@@ -2920,6 +2850,8 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
 	else
 		FixedPipelineState = COpenGLDriver::EOFPS_ENABLE;
 
+	bool resetAllRenderStates = false;
+
 	if (CurrentRenderMode != ERM_2D || Transformation3DChanged)
 	{
 		// unset last 3d material
@@ -2928,6 +2860,7 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
 			if (static_cast<u32>(LastMaterial.MaterialType) < MaterialRenderers.size())
 				MaterialRenderers[LastMaterial.MaterialType].Renderer->OnUnsetMaterial();
 		}
+
 		if (Transformation3DChanged)
 		{
 			CacheHandler->setMatrixMode(GL_PROJECTION);
@@ -2940,32 +2873,40 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
 
 			CacheHandler->setMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
-
 			glTranslatef(0.375f, 0.375f, 0.0f);
-
-			// Make sure we set first texture matrix
-			CacheHandler->setActiveTexture(GL_TEXTURE0);
 
 			Transformation3DChanged = false;
 		}
-		if (!OverrideMaterial2DEnabled)
-		{
-			setBasicRenderStates(InitMaterial2D, LastMaterial, true);
-			LastMaterial = InitMaterial2D;
-		}
+
 		CacheHandler->setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 #ifdef GL_EXT_clip_volume_hint
 		if (FeatureAvailable[IRR_EXT_clip_volume_hint])
 			glHint(GL_CLIP_VOLUME_CLIPPING_HINT_EXT, GL_FASTEST);
 #endif
 
+		resetAllRenderStates = true;
 	}
-	if (OverrideMaterial2DEnabled)
+
+	SMaterial currentMaterial = (!OverrideMaterial2DEnabled) ? InitMaterial2D : OverrideMaterial2D;
+	currentMaterial.Lighting = false;
+
+	if (texture)
 	{
-		OverrideMaterial2D.Lighting=false;
-		setBasicRenderStates(OverrideMaterial2D, LastMaterial, false);
-		LastMaterial = OverrideMaterial2D;
+		setTransform(ETS_TEXTURE_0, core::IdentityMatrix);
+
+		// Due to the transformation change, the previous line would call a reset each frame
+		// but we can safely reset the variable as it was false before
+		Transformation3DChanged = false;
 	}
+	else
+	{
+		CacheHandler->getTextureCache().set(0, 0);
+	}
+
+	setBasicRenderStates(currentMaterial, LastMaterial, resetAllRenderStates);
+
+	LastMaterial = currentMaterial;
 
 	// no alphaChannel without texture
 	alphaChannel &= texture;
@@ -2984,23 +2925,14 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
 
 	if (texture)
 	{
-		if (OverrideMaterial2DEnabled)
-			setTextureRenderStates(OverrideMaterial2D, false);
-		else
-			setTextureRenderStates(InitMaterial2D, false);
-
-		Material.setTexture(0, const_cast<COpenGLTexture*>(CacheHandler->getTextureCache()[0]));
-		setTransform(ETS_TEXTURE_0, core::IdentityMatrix);
-		// Due to the transformation change, the previous line would call a reset each frame
-		// but we can safely reset the variable as it was false before
-		Transformation3DChanged=false;
+		CacheHandler->setActiveTexture(GL_TEXTURE0_ARB);
 
 		if (alphaChannel)
 		{
 			// if alpha and alpha texture just modulate, otherwise use only the alpha channel
 			if (alpha)
 			{
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			}
 			else
 			{
@@ -3008,26 +2940,26 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
 				if (FeatureAvailable[IRR_ARB_texture_env_combine]||FeatureAvailable[IRR_EXT_texture_env_combine])
 				{
 #ifdef GL_ARB_texture_env_combine
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_TEXTURE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_TEXTURE);
 					// rgb always modulates
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_TEXTURE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_PRIMARY_COLOR_ARB);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_TEXTURE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_PRIMARY_COLOR_ARB);
 #else
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
 					// rgb always modulates
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
 #endif
 				}
 				else
 #endif
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			}
 		}
 		else
@@ -3038,21 +2970,21 @@ void COpenGLDriver::setRenderStates2DMode(bool alpha, bool texture, bool alphaCh
 				if (FeatureAvailable[IRR_ARB_texture_env_combine]||FeatureAvailable[IRR_EXT_texture_env_combine])
 				{
 #ifdef GL_ARB_texture_env_combine
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PRIMARY_COLOR_ARB);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PRIMARY_COLOR_ARB);
 					// rgb always modulates
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_TEXTURE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_PRIMARY_COLOR_ARB);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_TEXTURE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_PRIMARY_COLOR_ARB);
 #else
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
+					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
 					// rgb always modulates
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-					glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
+					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
 #endif
 				}
 				else
@@ -3532,6 +3464,67 @@ void COpenGLDriver::setFog(SColor c, E_FOG_TYPE fogType, f32 start,
 	glFogfv(GL_FOG_COLOR, data);
 }
 
+//! Draws a 3d box.
+void COpenGLDriver::draw3DBox( const core::aabbox3d<f32>& box, SColor color )
+{
+	core::vector3df edges[8];
+	box.getEdges(edges);
+
+	setRenderStates3DMode();
+
+	video::S3DVertex v[24];
+
+	for(u32 i = 0; i < 24; i++)
+		v[i].Color = color;
+
+	v[0].Pos = edges[5];
+	v[1].Pos = edges[1];
+	v[2].Pos = edges[1];
+	v[3].Pos = edges[3];
+	v[4].Pos = edges[3];
+	v[5].Pos = edges[7];
+	v[6].Pos = edges[7];
+	v[7].Pos = edges[5];
+	v[8].Pos = edges[0];
+	v[9].Pos = edges[2];
+	v[10].Pos = edges[2];
+	v[11].Pos = edges[6];
+	v[12].Pos = edges[6];
+	v[13].Pos = edges[4];
+	v[14].Pos = edges[4];
+	v[15].Pos = edges[0];
+	v[16].Pos = edges[1];
+	v[17].Pos = edges[0];
+	v[18].Pos = edges[3];
+	v[19].Pos = edges[2];
+	v[20].Pos = edges[7];
+	v[21].Pos = edges[6];
+	v[22].Pos = edges[5];
+	v[23].Pos = edges[4];
+
+	if (!FeatureAvailable[IRR_ARB_vertex_array_bgra] && !FeatureAvailable[IRR_EXT_vertex_array_bgra])
+		getColorBuffer(v, 24, EVT_STANDARD);
+
+	CacheHandler->setClientState(true, false, true, false);
+
+	glVertexPointer(3, GL_FLOAT, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(v))[0].Pos);
+
+#ifdef GL_BGRA
+	const GLint colorSize=(FeatureAvailable[IRR_ARB_vertex_array_bgra] || FeatureAvailable[IRR_EXT_vertex_array_bgra])?GL_BGRA:4;
+#else
+	const GLint colorSize=4;
+#endif
+	if (FeatureAvailable[IRR_ARB_vertex_array_bgra] || FeatureAvailable[IRR_EXT_vertex_array_bgra])
+		glColorPointer(colorSize, GL_UNSIGNED_BYTE, sizeof(S3DVertex), &(static_cast<const S3DVertex*>(v))[0].Color);
+	else
+	{
+		_IRR_DEBUG_BREAK_IF(ColorBuffer.size()==0);
+		glColorPointer(colorSize, GL_UNSIGNED_BYTE, 0, &ColorBuffer[0]);
+	}
+
+	glDrawArrays(GL_LINES, 0, 24);
+}
+
 
 //! Draws a 3d line.
 void COpenGLDriver::draw3DLine(const core::vector3df& start,
@@ -3578,6 +3571,15 @@ void COpenGLDriver::removeTexture(ITexture* texture)
 	CNullDriver::removeTexture(texture);
 }
 
+//! Check if the driver supports creating textures with the given color format
+bool COpenGLDriver::queryTextureFormat(ECOLOR_FORMAT format) const
+{
+	GLint dummyInternalFormat;
+	GLenum dummyPixelFormat;
+	GLenum dummyPixelType;
+	void (*dummyConverter)(const void*, s32, void*);
+	return getColorFormatParameters(format, dummyInternalFormat, dummyPixelFormat, dummyPixelType, &dummyConverter);
+}
 
 //! Only used by the internal engine. Used to notify the driver that
 //! the window was resized.
@@ -3834,10 +3836,15 @@ bool COpenGLDriver::setRenderTargetEx(IRenderTarget* target, u16 clearFlag, SCol
 void COpenGLDriver::clearBuffers(u16 flag, SColor color, f32 depth, u8 stencil)
 {
 	GLbitfield mask = 0;
+	u8 colorMask = 0;
+	bool depthMask = false;
+
+	CacheHandler->getColorMask(colorMask);
+	CacheHandler->getDepthMask(depthMask);
 
 	if (flag & ECBF_COLOR)
 	{
-		CacheHandler->setColorMask(true, true, true, true);
+		CacheHandler->setColorMask(ECP_ALL);
 
 		const f32 inv = 1.0f / 255.0f;
 		glClearColor(color.getRed() * inv, color.getGreen() * inv,
@@ -3861,6 +3868,9 @@ void COpenGLDriver::clearBuffers(u16 flag, SColor color, f32 depth, u8 stencil)
 
 	if (mask)
 		glClear(mask);
+
+	CacheHandler->setColorMask(colorMask);
+	CacheHandler->setDepthMask(depthMask);
 }
 
 
@@ -3935,10 +3945,7 @@ IImage* COpenGLDriver::createScreenShot(video::ECOLOR_FORMAT format, video::E_RE
 		}
 		glReadBuffer(tgt);
 		glReadPixels(0, 0, ScreenSize.Width, ScreenSize.Height, fmt, type, pixels);
-		if ( testGLError() )
-		{
-			os::Printer::log("glReadPixels failed", ELL_ERROR);
-		}
+		testGLError(__LINE__);
 		glReadBuffer(GL_BACK);
 	}
 
@@ -3974,7 +3981,7 @@ IImage* COpenGLDriver::createScreenShot(video::ECOLOR_FORMAT format, video::E_RE
 
 	if (newImage)
 	{
-		if (testGLError() || !pixels)
+		if (testGLError(__LINE__) || !pixels)
 		{
 			os::Printer::log("createScreenShot failed", ELL_ERROR);
 			newImage->drop();
@@ -4111,9 +4118,10 @@ GLenum COpenGLDriver::getZBufferBits() const
 	return bits;
 }
 
-void COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
-	GLenum& pixelType, void(**converter)(const void*, s32, void*))
+bool COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
+	GLenum& pixelType, void(**converter)(const void*, s32, void*)) const
 {
+	bool supported = false;
 	internalFormat = GL_RGBA;
 	pixelFormat = GL_RGBA;
 	pixelType = GL_UNSIGNED_BYTE;
@@ -4121,49 +4129,58 @@ void COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& intern
 	switch (format)
 	{
 	case ECF_A1R5G5B5:
+		supported = true;
 		internalFormat = GL_RGBA;
 		pixelFormat = GL_BGRA_EXT;
 		pixelType = GL_UNSIGNED_SHORT_1_5_5_5_REV;
 		break;
 	case ECF_R5G6B5:
+		supported = true;
 		internalFormat = GL_RGB;
 		pixelFormat = GL_RGB;
 		pixelType = GL_UNSIGNED_SHORT_5_6_5;
 		break;
 	case ECF_R8G8B8:
+		supported = true;
 		internalFormat = GL_RGB;
 		pixelFormat = GL_BGR;
 		pixelType = GL_UNSIGNED_BYTE;
 		break;
 	case ECF_A8R8G8B8:
+		supported = true;
 		internalFormat = GL_RGBA;
 		pixelFormat = GL_BGRA_EXT;
 		if (Version > 101)
 			pixelType = GL_UNSIGNED_INT_8_8_8_8_REV;
 		break;
 	case ECF_DXT1:
+		supported = true;
 		internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 		pixelFormat = GL_BGRA_EXT;
 		pixelType = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 		break;
 	case ECF_DXT2:
 	case ECF_DXT3:
+		supported = true;
 		internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 		pixelFormat = GL_BGRA_EXT;
 		pixelType = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 		break;
 	case ECF_DXT4:
 	case ECF_DXT5:
+		supported = true;
 		internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 		pixelFormat = GL_BGRA_EXT;
 		pixelType = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 		break;
 	case ECF_D16:
+		supported = true;
 		internalFormat = GL_DEPTH_COMPONENT16;
 		pixelFormat = GL_DEPTH_COMPONENT;
 		pixelType = GL_UNSIGNED_SHORT;
 		break;
 	case ECF_D32:
+		supported = true;
 		internalFormat = GL_DEPTH_COMPONENT32;
 		pixelFormat = GL_DEPTH_COMPONENT;
 		pixelType = GL_UNSIGNED_INT;
@@ -4172,6 +4189,7 @@ void COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& intern
 #ifdef GL_VERSION_3_0
 		if (Version >= 300)
 		{
+			supported = true;
 			internalFormat = GL_DEPTH_STENCIL;
 			pixelFormat = GL_DEPTH_STENCIL;
 			pixelType = GL_UNSIGNED_INT_24_8;
@@ -4181,57 +4199,53 @@ void COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& intern
 #ifdef GL_EXT_packed_depth_stencil
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_EXT_packed_depth_stencil))
 		{
+			supported = true;
 			internalFormat = GL_DEPTH_STENCIL_EXT;
 			pixelFormat = GL_DEPTH_STENCIL_EXT;
 			pixelType = GL_UNSIGNED_INT_24_8_EXT;
 		}
-		else
 #endif
-			os::Printer::log("ECF_D24S8 color format is not supported", ELL_ERROR);
 		break;
 	case ECF_R8:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_rg))
 		{
+			supported = true;
 			internalFormat = GL_R8;
 			pixelFormat = GL_RED;
 			pixelType = GL_UNSIGNED_BYTE;
 		}
-		else
-			os::Printer::log("ECF_R8 color format is not supported", ELL_ERROR);
 		break;
 	case ECF_R8G8:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_rg))
 		{
+			supported = true;
 			internalFormat = GL_RG8;
 			pixelFormat = GL_RG;
 			pixelType = GL_UNSIGNED_BYTE;
 		}
-		else
-			os::Printer::log("ECF_R8G8 color format is not supported", ELL_ERROR);
 		break;
 	case ECF_R16:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_rg))
 		{
+			supported = true;
 			internalFormat = GL_R16;
 			pixelFormat = GL_RED;
 			pixelType = GL_UNSIGNED_SHORT;
 		}
-		else
-			os::Printer::log("ECF_R16 color format is not supported", ELL_ERROR);
 		break;
 	case ECF_R16G16:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_rg))
 		{
+			supported = true;
 			internalFormat = GL_RG16;
 			pixelFormat = GL_RG;
 			pixelType = GL_UNSIGNED_SHORT;
 		}
-		else
-			os::Printer::log("ECF_R16G16 color format is not supported", ELL_ERROR);
 		break;
 	case ECF_R16F:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_rg))
 		{
+			supported = true;
 			internalFormat = GL_R16F;
 			pixelFormat = GL_RED;
 #ifdef GL_ARB_half_float_pixel
@@ -4241,12 +4255,11 @@ void COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& intern
 #endif
 				pixelType = GL_FLOAT;
 		}
-		else
-			os::Printer::log("ECF_R16F color format is not supported", ELL_ERROR);
 		break;
 	case ECF_G16R16F:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_rg))
 		{
+			supported = true;
 			internalFormat = GL_RG16F;
 			pixelFormat = GL_RG;
 #ifdef GL_ARB_half_float_pixel
@@ -4256,12 +4269,11 @@ void COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& intern
 #endif
 				pixelType = GL_FLOAT;
 		}
-		else
-			os::Printer::log("ECF_G16R16F color format is not supported", ELL_ERROR);
 		break;
 	case ECF_A16B16G16R16F:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_float))
 		{
+			supported = true;
 			internalFormat = GL_RGBA16F_ARB;
 			pixelFormat = GL_RGBA;
 #ifdef GL_ARB_half_float_pixel
@@ -4271,41 +4283,35 @@ void COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& intern
 #endif
 				pixelType = GL_FLOAT;
 		}
-		else
-			os::Printer::log("ECF_A16B16G16R16F color format is not supported", ELL_ERROR);
 		break;
 	case ECF_R32F:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_rg))
 		{
+			supported = true;
 			internalFormat = GL_R32F;
 			pixelFormat = GL_RED;
 			pixelType = GL_FLOAT;
 		}
-		else
-			os::Printer::log("ECF_R32F color format is not supported", ELL_ERROR);
 		break;
 	case ECF_G32R32F:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_rg))
 		{
-			internalFormat = GL_RG32F;			
+			supported = true;
+			internalFormat = GL_RG32F;
 			pixelFormat = GL_RG;
 			pixelType = GL_FLOAT;
 		}
-		else
-			os::Printer::log("ECF_G32R32F color format is not supported", ELL_ERROR);
 		break;
 	case ECF_A32B32G32R32F:
 		if (queryOpenGLFeature(COpenGLExtensionHandler::IRR_ARB_texture_float))
 		{
-			internalFormat = GL_RGBA32F_ARB;			
+			supported = true;
+			internalFormat = GL_RGBA32F_ARB;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_FLOAT;
 		}
-		else
-			os::Printer::log("ECF_A32B32G32R32F color format is not supported", ELL_ERROR);
 		break;
 	default:
-		os::Printer::log("Unsupported texture format", ELL_ERROR);
 		break;
 	}
 
@@ -4318,6 +4324,8 @@ void COpenGLDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& intern
 			internalFormat = GL_SRGB_EXT;
 	}
 #endif
+
+	return supported;
 }
 
 COpenGLDriver::E_OPENGL_FIXED_PIPELINE_STATE COpenGLDriver::getFixedPipelineState() const

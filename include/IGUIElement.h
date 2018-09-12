@@ -13,14 +13,12 @@
 #include "EGUIElementTypes.h"
 #include "EGUIAlignment.h"
 #include "IAttributes.h"
+#include "IGUIEnvironment.h"
 
 namespace irr
 {
 namespace gui
 {
-
-class IGUIEnvironment;
-
 //! Base class of all GUI elements.
 class IGUIElement : public virtual io::IAttributeExchangingObject, public IEventReceiver
 {
@@ -56,6 +54,7 @@ public:
 		core::list<IGUIElement*>::Iterator it = Children.begin();
 		for (; it != Children.end(); ++it)
 		{
+			(*it)->sendRemoveEvent();
 			(*it)->Parent = 0;
 			(*it)->drop();
 		}
@@ -67,7 +66,6 @@ public:
 	{
 		return Parent;
 	}
-
 
 	//! Returns the relative rectangle of this element.
 	core::rect<s32> getRelativePosition() const
@@ -292,6 +290,7 @@ public:
 		for (; it != Children.end(); ++it)
 			if ((*it) == child)
 			{
+				(*it)->sendRemoveEvent();
 				(*it)->Parent = 0;
 				(*it)->drop();
 				Children.erase(it);
@@ -465,7 +464,7 @@ public:
 
 	//! Returns true if element is enabled
 	/** Currently elements do _not_ care about parent-states.
-		So if you want to affect childs you have to enable/disable them all.
+		So if you want to affect children you have to enable/disable them all.
 		The only exception to this are sub-elements which also check their parent.
 	*/
 	virtual bool isEnabled() const
@@ -728,7 +727,7 @@ public:
 	you can overload this function and add a check for the type of the base-class additionally.
 	This allows for checks comparable to the dynamic_cast of c++ with enabled rtti.
 	Note that you can't do that by calling BaseClass::hasType(type), but you have to do an explicit
-	comparison check, because otherwise the base class usually just checks for the membervariable
+	comparison check, because otherwise the base class usually just checks for the member variable
 	Type which contains the type of your derived class.
 	*/
 	virtual bool hasType(EGUI_ELEMENT_TYPE type) const
@@ -966,6 +965,21 @@ protected:
 		}
 	}
 
+	// Inform gui-environment that an element got removed from the gui-graph
+	void sendRemoveEvent()
+	{
+		if ( Environment )
+		{
+			SEvent removeEvent;
+			removeEvent.EventType = EET_GUI_EVENT;
+			removeEvent.GUIEvent.Caller = this;
+			removeEvent.GUIEvent.Element = 0;
+			removeEvent.GUIEvent.EventType = EGET_ELEMENT_REMOVED;
+
+			Environment->postEventFromUser(removeEvent);
+		}
+	}
+
 protected:
 
 	//! List of all children of this element
@@ -1014,10 +1028,10 @@ protected:
 	//! tooltip
 	core::stringw ToolTipText;
 
-	//! users can set this for identificating the element by string
+	//! users can set this for identifying the element by string
 	core::stringc Name;
 
-	//! users can set this for identificating the element by integer
+	//! users can set this for identifying the element by integer
 	s32 ID;
 
 	//! tab stop like in windows

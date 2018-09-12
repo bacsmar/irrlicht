@@ -21,7 +21,7 @@ namespace io
 		/** \param buffer Pointer to buffer of bytes to write.
 		\param sizeToWrite Amount of bytes to write to the file.
 		\return How much bytes were written. */
-		virtual s32 write(const void* buffer, u32 sizeToWrite) = 0;
+		virtual size_t write(const void* buffer, size_t sizeToWrite) = 0;
 
 		//! Changes position in file
 		/** \param finalPos Destination position in the file.
@@ -32,7 +32,7 @@ namespace io
 		virtual bool seek(long finalPos, bool relativeMovement = false) = 0;
 
 		//! Get the current position in the file.
-		/** \return Current position in the file in bytes. */
+		/** \return Current position in the file in bytes on success or -1L on failure */
 		virtual long getPos() const = 0;
 
 		//! Get name of file.

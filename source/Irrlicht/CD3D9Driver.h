@@ -170,6 +170,9 @@ namespace video
 		virtual void draw3DLine(const core::vector3df& start,
 			const core::vector3df& end, SColor color = SColor(255,255,255,255)) _IRR_OVERRIDE_;
 
+		//! Draws a 3d box.
+		virtual void draw3DBox( const core::aabbox3d<f32>& box, SColor color = SColor(255,255,255,255 ) )  _IRR_OVERRIDE_;
+
 		//! initialises the Direct3D API
 		bool initDriver(HWND hwnd, bool pureSoftware);
 
@@ -289,6 +292,9 @@ namespace video
 
 		//! Returns the maximum texture size supported.
 		virtual core::dimension2du getMaxTextureSize() const _IRR_OVERRIDE_;
+
+		//! Check if the driver supports creating textures with the given color format
+		virtual bool queryTextureFormat(ECOLOR_FORMAT format) const _IRR_OVERRIDE_;
 
 		//! Get the current color format of the color buffer
 		/** \return Color format of the color buffer as D3D color value. */

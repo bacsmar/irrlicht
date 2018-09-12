@@ -2,27 +2,34 @@
 // This file is not documented.
 
 #include "CMainMenu.h"
+#include "CDemo.h"
 #include "exampleHelper.h"
 
 
 
 CMainMenu::CMainMenu()
-: startButton(0), MenuDevice(0), selected(2), start(false), fullscreen(true),
-	music(true), shadows(false), additive(false), transparent(true), vsync(false), aa(false)
+: startButton(0), MenuDevice(0), selected(0), start(false),	fullscreen(false),
+#if defined(USE_IRRKLANG) || defined(USE_SDL_MIXER)
+	music(true),
+#else
+	music(false),
+#endif
+	shadows(true), additive(false), transparent(true), vsync(true), aa(true),
+#ifndef _IRR_WINDOWS_
+	driverType(video::EDT_OPENGL)
+#else
+	driverType(video::EDT_DIRECT3D9)
+#endif
+	//driverType(video::EDT_BURNINGSVIDEO)
 {
 }
 
 
-bool CMainMenu::run(bool& outFullscreen, bool& outMusic, bool& outShadows,
-			bool& outAdditive, bool& outVSync, bool& outAA,
-			video::E_DRIVER_TYPE& outDriver)
+bool CMainMenu::run()
 {
-	video::E_DRIVER_TYPE driverType = video::EDT_BURNINGSVIDEO;
-		driverType = video::EDT_OPENGL;
+	video::E_DRIVER_TYPE driverType = EDT_OPENGL;
 	if (!IrrlichtDevice::isDriverSupported(video::EDT_OPENGL))
-		driverType = video::EDT_DIRECT3D9;
-	if (!IrrlichtDevice::isDriverSupported(video::EDT_DIRECT3D9))
-		driverType = video::EDT_SOFTWARE;
+		driverType = video::video::EDT_BURNINGSVIDEO;
 
 	MenuDevice = createDevice(driverType,
 		core::dimension2d<u32>(512, 384), 16, false, false, false, this);
@@ -76,6 +83,14 @@ bool CMainMenu::run(bool& outFullscreen, bool& outMusic, bool& outShadows,
 			box->addItem(names[i-1]);
 	}
 
+	switch (driverType )
+	{
+		case video::EDT_OPENGL:        selected = 0; break;
+		case video::EDT_DIRECT3D9:     selected = 1; break;
+		case video::EDT_BURNINGSVIDEO: selected = 2; break;
+		case video::EDT_SOFTWARE:      selected = 3; break;
+		default: break;
+	}
 	box->setSelected(selected);
 
 	// add button
@@ -107,7 +122,7 @@ bool CMainMenu::run(bool& outFullscreen, bool& outMusic, bool& outShadows,
 		L"The Irrlicht Engine was written by me, Nikolaus Gebhardt. The models, "\
 		L"maps and textures were placed at my disposal by B.Collins, M.Cook and J.Marton. The music was created by "\
 		L"M.Rohde and is played back by irrKlang.\n"\
-		L"For more informations, please visit the homepage of the Irrlicht engine:\nhttp://irrlicht.sourceforge.net";
+		L"For more information, please visit the homepage of the Irrlicht engine:\nhttp://irrlicht.sourceforge.net";
 
 	guienv->addStaticText(text2, core::rect<int>(10, 10, 230, 320),
 		true, true, aboutTab);
@@ -253,13 +268,6 @@ bool CMainMenu::run(bool& outFullscreen, bool& outMusic, bool& outShadows,
 	}
 
 	MenuDevice->drop();
-
-	outFullscreen = fullscreen;
-	outMusic = music;
-	outShadows = shadows;
-	outAdditive = additive;
-	outVSync = vsync;
-	outAA = aa;
 
 	for (u32 i=1; i<video::EDT_COUNT; ++i)
 	{

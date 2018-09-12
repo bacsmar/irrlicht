@@ -38,7 +38,10 @@ IRRMESHOBJ = $(IRRMESHLOADER) $(IRRMESHWRITER) \
 IRROBJ = CBillboardSceneNode.o CCameraSceneNode.o CDummyTransformationSceneNode.o CEmptySceneNode.o CGeometryCreator.o CLightSceneNode.o CMeshManipulator.o CMetaTriangleSelector.o COctreeSceneNode.o COctreeTriangleSelector.o CSceneCollisionManager.o CSceneManager.o CShadowVolumeSceneNode.o CSkyBoxSceneNode.o CSkyDomeSceneNode.o CTerrainSceneNode.o CTerrainTriangleSelector.o CVolumeLightSceneNode.o CCubeSceneNode.o CSphereSceneNode.o CTextSceneNode.o CTriangleBBSelector.o CTriangleSelector.o CWaterSurfaceSceneNode.o CMeshCache.o CDefaultSceneNodeAnimatorFactory.o CDefaultSceneNodeFactory.o CSceneLoaderIrr.o
 IRRPARTICLEOBJ = CParticleAnimatedMeshSceneNodeEmitter.o CParticleBoxEmitter.o CParticleCylinderEmitter.o CParticleMeshEmitter.o CParticlePointEmitter.o CParticleRingEmitter.o CParticleSphereEmitter.o CParticleAttractionAffector.o CParticleFadeOutAffector.o CParticleGravityAffector.o CParticleRotationAffector.o CParticleSystemSceneNode.o CParticleScaleAffector.o
 IRRANIMOBJ = CSceneNodeAnimatorCameraFPS.o CSceneNodeAnimatorCameraMaya.o CSceneNodeAnimatorCollisionResponse.o CSceneNodeAnimatorDelete.o CSceneNodeAnimatorFlyCircle.o CSceneNodeAnimatorFlyStraight.o CSceneNodeAnimatorFollowSpline.o CSceneNodeAnimatorRotation.o CSceneNodeAnimatorTexture.o
-IRRDRVROBJ = CNullDriver.o COpenGLCacheHandler.o COpenGLDriver.o COpenGLNormalMapRenderer.o COpenGLParallaxMapRenderer.o COpenGLShaderMaterialRenderer.o COpenGLSLMaterialRenderer.o COpenGLExtensionHandler.o CD3D9Driver.o CD3D9HLSLMaterialRenderer.o CD3D9NormalMapRenderer.o CD3D9ParallaxMapRenderer.o CD3D9ShaderMaterialRenderer.o CD3D9Texture.o COGLESDriver.o COGLESExtensionHandler.o COGLES2Driver.o COGLES2ExtensionHandler.o COGLES2FixedPipelineRenderer.o COGLES2MaterialRenderer.o COGLES2NormalMapRenderer.o COGLES2ParallaxMapRenderer.o COGLES2Renderer2D.o CGLXManager.o CWGLManager.o CEGLManager.o
+IRRDRVROBJ = CNullDriver.o COpenGLCacheHandler.o COpenGLDriver.o COpenGLNormalMapRenderer.o COpenGLParallaxMapRenderer.o COpenGLShaderMaterialRenderer.o COpenGLSLMaterialRenderer.o COpenGLExtensionHandler.o \
+	CD3D9Driver.o CD3D9HLSLMaterialRenderer.o CD3D9NormalMapRenderer.o CD3D9ParallaxMapRenderer.o CD3D9ShaderMaterialRenderer.o CD3D9Texture.o \
+	COGLESDriver.o COGLESExtensionHandler.o COGLES2Driver.o COGLES2ExtensionHandler.o COGLES2FixedPipelineRenderer.o COGLES2MaterialRenderer.o COGLES2NormalMapRenderer.o COGLES2ParallaxMapRenderer.o COGLES2Renderer2D.o CWebGL1Driver.o \
+	CGLXManager.o CWGLManager.o CEGLManager.o
 IRRIMAGEOBJ = CColorConverter.o CImage.o CImageLoaderBMP.o CImageLoaderDDS.o CImageLoaderJPG.o CImageLoaderPCX.o CImageLoaderPNG.o CImageLoaderPSD.o CImageLoaderPVR.o CImageLoaderTGA.o CImageLoaderPPM.o CImageLoaderWAL.o CImageLoaderRGB.o \
 	CImageWriterBMP.o CImageWriterJPG.o CImageWriterPCX.o CImageWriterPNG.o CImageWriterPPM.o CImageWriterPSD.o CImageWriterTGA.o
 IRRVIDEOOBJ = CVideoModeList.o CFPSCounter.o $(IRRDRVROBJ) $(IRRIMAGEOBJ)
@@ -59,21 +62,37 @@ LINKOBJ = $(IRRMESHOBJ) $(IRROBJ) $(IRRPARTICLEOBJ) $(IRRANIMOBJ) \
 	$(IRRGUIOBJ) $(ZLIBOBJ) $(JPEGLIBOBJ) $(LIBPNGOBJ) $(LIBAESGM) \
 	$(BZIP2OBJ) $(EXTRAOBJ)
 
+emscripten: EMSCRIPTEN=1
+
 ###############
 #Compiler flags
 
 CXXINCS = -I../../include -Izlib -Ijpeglib -Ilibpng
 CPPFLAGS += $(CXXINCS) -DIRRLICHT_EXPORTS=1
 CXXFLAGS += -Wall -pipe -fno-exceptions -fno-rtti -fstrict-aliasing
+#CXXFLAGS += -std=gnu++11 -U__STRICT_ANSI__
 ifndef NDEBUG
-CXXFLAGS += -g -D_DEBUG
+  CXXFLAGS += -g -D_DEBUG
 else
-CXXFLAGS += -fexpensive-optimizations -O3
+  ifndef EMSCRIPTEN
+    CXXFLAGS += -fexpensive-optimizations -O3
+  else
+    CXXFLAGS += -O3
+  endif
 endif
 ifdef PROFILE
-CXXFLAGS += -pg
+  CXXFLAGS += -pg
 endif
-CFLAGS := -O3 -fexpensive-optimizations -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES
+ifdef EMSCRIPTEN
+  CXXFLAGS += -std=gnu++11 -U__STRICT_ANSI__
+  ifndef NDEBUG
+    CFLAGS := -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES
+  else
+    CFLAGS := -O3 -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES
+  endif
+else
+  CFLAGS := -O3 -fexpensive-optimizations -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES
+endif
 
 sharedlib sharedlib_osx: CXXFLAGS += -fPIC
 sharedlib sharedlib_osx: CFLAGS += -fPIC
@@ -85,9 +104,6 @@ endif
 
 #Linux specific options
 staticlib sharedlib install: SYSTEM = Linux
-STATIC_LIB = libIrrlicht.a
-LIB_PATH = ../../lib/$(SYSTEM)
-INSTALL_DIR = /usr/local/lib
 sharedlib install: SHARED_LIB = libIrrlicht.so
 sharedlib: LDFLAGS += -L/usr/X11R6/lib$(LIBSELECT) -lGL -lXxf86vm
 staticlib sharedlib: CXXINCS += -I/usr/X11R6/include
@@ -111,13 +127,41 @@ sharedlib_win32: LDFLAGS += -lgdi32 -lopengl32 -ld3dx9d -lwinmm -Wl,--add-stdcal
 sharedlib_win32 staticlib_win32: CPPFLAGS += -DNO_IRR_COMPILE_WITH_DIRECTINPUT_JOYSTICK_ -DNO_IRR_COMPILE_WITH_DIRECT3D_9_
 staticlib_win32: CPPFLAGS += -D_IRR_STATIC_LIB_
 
+#emscripten specific options
+staticlib_emscripten: SYSTEM = emscripten
+
+
+# You might want to disable features you don't need in Irrlicht here to reduce Irrlicht library.
+# This can also help to reduce the .js size when compiling for emscripten.
+# Note you can also disable the same features by modifying IrrCompileConfig.h which is slightly 
+# safer as you have then the same setting when compiling Irrlicht and your project (but needs 
+# modifying source-code while you can simply copy the Makefile and create your own settings)
+
+# xml - use a lot, but also takes  a lot of space. Check if you have any formats using it.s
+#CXXFLAGS += -DNO_IRR_COMPILE_WITH_XML_ 
+# Get rid of encrypted zip files or bzip encrypted zip's or lzma encrypte zip's - or even all zip-file support.
+#CXXFLAGS += -DNO_IRR_COMPILE_WITH_ZIP_ENCRYPTION_ -DNO_IRR_COMPILE_WITH_BZIP2_ -DNO_IRR_COMPILE_WITH_LZMA_ -DNO_IRR_COMPILE_WITH_ZLIB_
+# Disable mesh writers 
+#CXXFLAGS += -DNO_IRR_COMPILE_WITH_IRR_WRITER_ -DNO_IRR_COMPILE_WITH_COLLADA_WRITER_ -DNO_IRR_COMPILE_WITH_STL_WRITER_ 
+#CXXFLAGS += -DNO_IRR_COMPILE_WITH_OBJ_WRITER_ -DNO_IRR_COMPILE_WITH_PLY_WRITER_ -DNO_IRR_COMPILE_WITH_B3D_WRITER_
+# Disable image writers
+#CXXFLAGS += -DNO_IRR_COMPILE_WITH_BMP_WRITER_ -DNO_IRR_COMPILE_WITH_JPG_WRITER_ -DNO_IRR_COMPILE_WITH_PCX_WRITER_
+#CXXFLAGS += -DNO_IRR_COMPILE_WITH_PNG_WRITER_ -DNO_IRR_COMPILE_WITH_PPM_WRITER_ -DNO_IRR_COMPILE_WITH_TGA_WRITER_
+
+
+STATIC_LIB = libIrrlicht.a
+LIB_PATH = ../../lib/$(SYSTEM)
+INSTALL_DIR = /usr/local/lib
+
 VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_RELEASE)
 SHARED_FULLNAME = $(SHARED_LIB).$(VERSION)
 SONAME = $(SHARED_LIB).$(VERSION_MAJOR).$(VERSION_MINOR)
 
 ####################
 # All target, builds Irrlicht as static lib (libIrrlicht.a) and copies it into lib/Linux
-all linux: staticlib
+all linux : staticlib
+
+emscripten: staticlib_emscripten
 
 # Builds Irrlicht as shared lib (libIrrlicht.so.versionNumber) and copies it into lib/Linux
 sharedlib: $(LINKOBJ)
@@ -129,8 +173,8 @@ sharedlib: $(LINKOBJ)
 $(STATIC_LIB): $(LINKOBJ)
 	$(AR) rs $@ $^
 
-# Copies static lib into lib/Linux
-staticlib staticlib_osx: $(STATIC_LIB)
+# Copies static lib into ../../lib/($SYSTEM)
+staticlib staticlib_osx staticlib_emscripten: $(STATIC_LIB)
 	mkdir -p $(LIB_PATH)
 	cp $^ $(LIB_PATH)
 
@@ -163,11 +207,11 @@ TAGS:
 
 # Create dependency files for automatic recompilation
 %.d:%.cpp
-	$(CXX) $(CPPFLAGS) -MM -MF $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MM -MF $@ $<
 
 # Create dependency files for automatic recompilation
 %.d:%.c
-	$(CC) $(CPPFLAGS) -MM -MF $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -MM -MF $@ $<
 
 # Create object files from objective-c code
 %.o:%.mm
@@ -181,6 +225,7 @@ help:
 	@echo "Available targets for Irrlicht"
 	@echo " sharedlib: Build shared library Irrlicht.so for Linux"
 	@echo " staticlib: Build static library Irrlicht.a for Linux"
+	@echo " emscripten: Build static emscripen library on Linux"
 	@echo " install: Copy shared library to /usr/local/lib"
 	@echo ""
 	@echo " sharedlib_win32: Build shared library Irrlicht.dll for Windows"
@@ -192,5 +237,4 @@ help:
 clean:
 	$(RM) $(LINKOBJ) $(SHARED_FULLNAME) $(STATIC_LIB) $(LINKOBJ:.o=.d)
 
-.PHONY: all sharedlib staticlib sharedlib_win32 staticlib_win32 help install clean
-
+.PHONY: all sharedlib staticlib sharedlib_win32 staticlib_win32 emscripten staticlib_emscripten help install clean

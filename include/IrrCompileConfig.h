@@ -99,8 +99,24 @@
 #define _IRR_COMPILE_WITH_OSX_DEVICE_
 #define NO_IRR_COMPILE_WITH_OGLES1_
 #define NO_IRR_COMPILE_WITH_OGLES2_
+#define NO_IRR_COMPILE_WITH_WEBGL1_
 #endif
 #endif
+
+#if defined(__EMSCRIPTEN__)
+#define _IRR_EMSCRIPTEN_PLATFORM_
+#define NO_IRR_COMPILE_WITH_JOYSTICK_EVENTS_
+#define NO_IRR_COMPILE_WITH_OPENGL_
+#define NO_IRR_COMPILE_WITH_OGLES1_
+#define _IRR_COMPILE_WITH_OGLES2_
+#define _IRR_COMPILE_WITH_WEBGL1_
+#define _IRR_COMPILE_WITH_EGL_MANAGER_
+#define _IRR_COMPILE_WITH_SDL_DEVICE_
+#define NO_IRR_COMPILE_WITH_X11_DEVICE_
+#define _IRR_LINUX_PLATFORM_	// emscripten basically working like a unix
+#define NO_IRR_COMPILE_WITH_SOFTWARE_
+#define NO_IRR_COMPILE_WITH_BURNINGSVIDEO_
+#endif // __EMSCRIPTEN__
 
 #if defined(__ANDROID__)
 #define _IRR_ANDROID_PLATFORM_
@@ -116,7 +132,7 @@
 #endif
 #endif
 
-#if !defined(_IRR_WINDOWS_API_) && !defined(_IRR_OSX_PLATFORM_) && !defined(_IRR_IOS_PLATFORM_) && !defined(_IRR_ANDROID_PLATFORM_)
+#if !defined(_IRR_WINDOWS_API_) && !defined(_IRR_OSX_PLATFORM_) && !defined(_IRR_IOS_PLATFORM_) && !defined(_IRR_ANDROID_PLATFORM_) && !defined(_IRR_EMSCRIPTEN_PLATFORM_)
 #ifndef _IRR_SOLARIS_PLATFORM_
 #define _IRR_LINUX_PLATFORM_
 #endif
@@ -241,9 +257,19 @@ define out. */
 #undef _IRR_COMPILE_WITH_OGLES2_
 #endif
 
+//! Define _IRR_COMPILE_WITH_WEBGL1_ to compile Irrlicht engine with a WebGL friendly
+//! subset of the OpenGL ES 2.0 driver.
+#define _IRR_COMPILE_WITH_WEBGL1_
+#ifdef NO_IRR_COMPILE_WITH_WEBGL1_
+#undef _IRR_COMPILE_WITH_WEBGL1_
+#endif
+#ifdef _IRR_COMPILE_WITH_WEBGL1_
+#define _IRR_COMPILE_WITH_OGLES2_ //  it's a subset of OGL ES2, so always needed when using WebGL
+#endif
+
 //! Define required options for OpenGL ES 2.0 drivers.
 #if defined(_IRR_COMPILE_WITH_OGLES2_)
-#if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_) || defined(_IRR_COMPILE_WITH_X11_DEVICE_) || defined(_IRR_COMPILE_WITH_ANDROID_DEVICE_)
+#if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_) || defined(_IRR_COMPILE_WITH_X11_DEVICE_) || defined(_IRR_COMPILE_WITH_ANDROID_DEVICE_) || defined(__EMSCRIPTEN__)
 #define _IRR_OGLES2_USE_EXTPOINTER_
 #ifndef _IRR_COMPILE_WITH_EGL_MANAGER_
 #define _IRR_COMPILE_WITH_EGL_MANAGER_
@@ -308,6 +334,13 @@ you will not be able to use anything provided by the GUI Environment, including 
 #define _IRR_COMPILE_WITH_GUI_
 #ifdef NO_IRR_COMPILE_WITH_GUI_
 #undef _IRR_COMPILE_WITH_GUI_
+#endif
+
+//! Define _IRR_COMPILE_WITH_PARTICLES to compile the engine the withe build-in particle system
+/** You can disable this if you don't need particles or use an external particle system. */
+#define _IRR_COMPILE_WITH_PARTICLES_
+#ifdef NO_IRR_COMPILE_WITH_PARTICLES_
+#undef _IRR_COMPILE_WITH_PARTICLES_
 #endif
 
 //! Define _IRR_WCHAR_FILESYSTEM to enable unicode filesystem support for the engine.
