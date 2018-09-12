@@ -165,7 +165,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		// This fixes problems with intermediate changes to the material during texture load.
 		ResetRenderStates = true;
 
-		testGLError();
+		testGLError(__LINE__);
 
 		return true;
 	}
@@ -502,7 +502,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 
 		extGlBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		return (!testGLError());
+		return (!testGLError(__LINE__));
 	}
 
 
@@ -567,7 +567,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 
 		extGlBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		return (!testGLError());
+		return (!testGLError(__LINE__));
 	}
 
 
@@ -1090,7 +1090,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		if (clipRect)
 			glDisable(GL_SCISSOR_TEST);
 
-		testGLError();
+		testGLError(__LINE__);
 	}
 
 
@@ -1392,7 +1392,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		if (clipRect)
 			glDisable(GL_SCISSOR_TEST);
 
-		testGLError();
+		testGLError(__LINE__);
 	}
 
 
@@ -1587,33 +1587,34 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		}
 	}
 
-	//! prints error if an error happened.
-	bool COpenGLNoFixedDriver::testGLError()
-	{
+//! prints error if an error happened.
+bool COpenGLNoFixedDriver::testGLError(int code)
+{
 #ifdef _DEBUG
-		GLenum g = glGetError();
-		switch (g)
-		{
-			case GL_NO_ERROR:
-				return false;
-			case GL_INVALID_ENUM:
-				os::Printer::log("GL_INVALID_ENUM", ELL_ERROR);
-				break;
-			case GL_INVALID_VALUE:
-				os::Printer::log("GL_INVALID_VALUE", ELL_ERROR);
-				break;
-			case GL_INVALID_OPERATION:
-				os::Printer::log("GL_INVALID_OPERATION", ELL_ERROR);
-				break;
-			case GL_OUT_OF_MEMORY:
-				os::Printer::log("GL_OUT_OF_MEMORY", ELL_ERROR);
-				break;
-		};
-		return true;
-#else
+	GLenum g = glGetError();
+	switch(g)
+	{
+	case GL_NO_ERROR:
 		return false;
+	case GL_INVALID_ENUM:
+		os::Printer::log("GL_INVALID_ENUM", core::stringc(code).c_str(), ELL_ERROR); break;
+	case GL_INVALID_VALUE:
+		os::Printer::log("GL_INVALID_VALUE", core::stringc(code).c_str(), ELL_ERROR); break;
+	case GL_INVALID_OPERATION:
+		os::Printer::log("GL_INVALID_OPERATION", core::stringc(code).c_str(), ELL_ERROR); break;
+	case GL_STACK_OVERFLOW:
+		os::Printer::log("GL_STACK_OVERFLOW", core::stringc(code).c_str(), ELL_ERROR); break;
+	case GL_STACK_UNDERFLOW:
+		os::Printer::log("GL_STACK_UNDERFLOW", core::stringc(code).c_str(), ELL_ERROR); break;
+	case GL_OUT_OF_MEMORY:
+		os::Printer::log("GL_OUT_OF_MEMORY", core::stringc(code).c_str(), ELL_ERROR); break;
+	};
+//	_IRR_DEBUG_BREAK_IF(true);
+	return true;
+#else
+	return false;
 #endif
-	}
+}
 
 	//! prints error if an error happened.
 	bool COpenGLNoFixedDriver::testEGLError()
@@ -1793,11 +1794,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		}
 
 		// Color Mask
-		CacheHandler->setColorMask(
-			(material.ColorMask & ECP_RED)?GL_TRUE:GL_FALSE,
-			(material.ColorMask & ECP_GREEN)?GL_TRUE:GL_FALSE,
-			(material.ColorMask & ECP_BLUE)?GL_TRUE:GL_FALSE,
-			(material.ColorMask & ECP_ALPHA)?GL_TRUE:GL_FALSE);
+		CacheHandler->setColorMask(material.ColorMask);
 
 		// Blend Equation
 		if (material.BlendOperation == EBO_NONE)
@@ -2106,7 +2103,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 
 		if (!(debugDataVisible & (scene::EDS_SKELETON|scene::EDS_MESH_WIRE_OVERLAY)))
 		{
-			CacheHandler->setColorMask(false, false, false, false);
+			CacheHandler->setColorMask(ECP_NONE);
 			glEnable(GL_STENCIL_TEST);
 		}
 
@@ -2176,7 +2173,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		setRenderStates2DMode(true, false, false);
 
 		CacheHandler->setDepthMask(false);
-		CacheHandler->setColorMask(true, true, true, true);
+		CacheHandler->setColorMask(ECP_ALL);
 
 		CacheHandler->setBlend(true);
 		CacheHandler->setBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2435,7 +2432,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 
 		if (flag & ECBF_COLOR)
 		{
-			CacheHandler->setColorMask(true, true, true, true);
+			CacheHandler->setColorMask(ECP_ALL);
 
 			const f32 inv = 1.0f / 255.0f;
 			glClearColor(color.getRed() * inv, color.getGreen() * inv,
@@ -2511,7 +2508,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		}
 
 		glReadPixels(0, 0, ScreenSize.Width, ScreenSize.Height, internalformat, type, pixels);
-		testGLError();
+		testGLError(__LINE__);
 
 		// opengl images are horizontally flipped, so we have to fix that here.
 		const s32 pitch = newImage->getPitch();
@@ -2527,12 +2524,12 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		}
 		delete [] tmpBuffer;
 
-		if (testGLError())
+		if (testGLError(__LINE__))
 		{
 			newImage->drop();
 			return 0;
 		}
-		testGLError();
+		testGLError(__LINE__);
 		return newImage;
 	}
 
@@ -2634,9 +2631,10 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		return bits;
 	}
 
-	void COpenGLNoFixedDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
+	bool COpenGLNoFixedDriver::getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
 		GLenum& pixelType, void(**converter)(const void*, s32, void*))
 	{
+	bool supported = false;
 		internalFormat = GL_RGBA;
 		pixelFormat = GL_RGBA;
 		pixelType = GL_UNSIGNED_BYTE;
@@ -2645,22 +2643,26 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		switch (format)
 		{
 		case ECF_A1R5G5B5:
+		supported = true;
 			internalFormat = GL_RGBA;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_UNSIGNED_SHORT_5_5_5_1;
 			*converter = CColorConverter::convert_A1R5G5B5toR5G5B5A1;
 			break;
 		case ECF_R5G6B5:
+		supported = true;
 			internalFormat = GL_RGB;
 			pixelFormat = GL_RGB;
 			pixelType = GL_UNSIGNED_SHORT_5_6_5;
 			break;
 		case ECF_R8G8B8:
+		supported = true;
 			internalFormat = GL_RGB;
 			pixelFormat = GL_RGB;
 			pixelType = GL_UNSIGNED_BYTE;
 			break;
 		case ECF_A8R8G8B8:
+		supported = true;
 			internalFormat = GL_RGBA;
 			pixelFormat = GL_BGRA_EXT;
 			if (Version > 101)
@@ -2668,6 +2670,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 			break;
 #ifdef GL_EXT_texture_compression_s3tc
 		case ECF_DXT1:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
@@ -2676,6 +2679,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #ifdef GL_EXT_texture_compression_s3tc
 		case ECF_DXT2:
 		case ECF_DXT3:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
@@ -2684,6 +2688,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #ifdef GL_EXT_texture_compression_s3tc
 		case ECF_DXT4:
 		case ECF_DXT5:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
@@ -2691,6 +2696,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_IMG_texture_compression_pvrtc
 		case ECF_PVRTC_RGB2:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
 			pixelFormat = GL_RGB;
 			pixelType = GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
@@ -2698,6 +2704,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_IMG_texture_compression_pvrtc
 		case ECF_PVRTC_ARGB2:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
@@ -2705,6 +2712,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_IMG_texture_compression_pvrtc
 		case ECF_PVRTC_RGB4:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
 			pixelFormat = GL_RGB;
 			pixelType = GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
@@ -2712,6 +2720,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_IMG_texture_compression_pvrtc
 		case ECF_PVRTC_ARGB4:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
@@ -2719,6 +2728,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_IMG_texture_compression_pvrtc2
 		case ECF_PVRTC2_ARGB2:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
@@ -2726,6 +2736,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_IMG_texture_compression_pvrtc2
 		case ECF_PVRTC2_ARGB4:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
@@ -2733,6 +2744,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_OES_compressed_ETC1_RGB8_texture
 		case ECF_ETC1:
+		supported = true;
 			internalFormat = GL_ETC1_RGB8_OES;
 			pixelFormat = GL_RGB;
 			pixelType = GL_ETC1_RGB8_OES;
@@ -2740,6 +2752,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_ES_VERSION_3_0 // TO-DO - fix when extension name will be available
 		case ECF_ETC2_RGB:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGB8_ETC2;
 			pixelFormat = GL_RGB;
 			pixelType = GL_COMPRESSED_RGB8_ETC2;
@@ -2747,12 +2760,14 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #endif
 #ifdef GL_ES_VERSION_3_0 // TO-DO - fix when extension name will be available
 		case ECF_ETC2_ARGB:
+		supported = true;
 			internalFormat = GL_COMPRESSED_RGBA8_ETC2_EAC;
 			pixelFormat = GL_RGBA;
 			pixelType = GL_COMPRESSED_RGBA8_ETC2_EAC;
 			break;
 #endif
 		case ECF_D16:
+		supported = true;
 			internalFormat = GL_DEPTH_COMPONENT16;
 			pixelFormat = GL_DEPTH_COMPONENT;
 			pixelType = GL_UNSIGNED_SHORT;
@@ -2761,6 +2776,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #if defined(GL_OES_depth32)
 			if (queryOpenGLFeature(COGLES2ExtensionHandler::IRR_OES_depth32))
 			{
+			supported = true;
 				internalFormat = GL_DEPTH_COMPONENT32_OES;
 				pixelFormat = GL_DEPTH_COMPONENT;
 				pixelType = GL_UNSIGNED_INT;
@@ -2773,6 +2789,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 #ifdef GL_OES_packed_depth_stencil
 			if (queryOpenGLFeature(COGLES2ExtensionHandler::IRR_OES_packed_depth_stencil))
 			{
+			supported = true;
 				internalFormat = GL_DEPTH24_STENCIL8_OES;
 				pixelFormat = GL_DEPTH_STENCIL_OES;
 				pixelType = GL_UNSIGNED_INT_24_8_OES;
@@ -2820,6 +2837,7 @@ COpenGLNoFixedDriver::~COpenGLNoFixedDriver()
 		if (internalFormat == GL_BGRA)
 			internalFormat = GL_RGBA;
 #endif
+	return supported;
 	}
 
 	const SMaterial& COpenGLNoFixedDriver::getCurrentMaterial() const

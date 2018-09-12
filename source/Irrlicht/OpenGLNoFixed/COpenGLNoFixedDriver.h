@@ -276,7 +276,7 @@ namespace video
 		virtual IImage* createScreenShot(video::ECOLOR_FORMAT format=video::ECF_UNKNOWN, video::E_RENDER_TARGET target=video::ERT_FRAME_BUFFER) _IRR_OVERRIDE_;
 
 		//! checks if an OpenGL error has happened and prints it
-		bool testGLError();
+		bool testGLError(int code);
 
 		//! checks if an OGLES1 error has happened and prints it
 		bool testEGLError();
@@ -307,7 +307,7 @@ namespace video
 		//! Get ZBuffer bits.
 		GLenum getZBufferBits() const;
 
-		void getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
+		bool getColorFormatParameters(ECOLOR_FORMAT format, GLint& internalFormat, GLenum& pixelFormat,
 			GLenum& pixelType, void(**converter)(const void*, s32, void*));
 
 		//! Get current material.
